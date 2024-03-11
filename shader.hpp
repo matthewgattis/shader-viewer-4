@@ -7,7 +7,7 @@
 class Shader
 {
 public:
-    Shader(std::istream& is, GLenum shader_type);
+    Shader(std::istream& is, GLenum type);
     Shader(const std::string& source, GLenum shader_type);
     Shader() = delete;
     ~Shader();
@@ -19,5 +19,6 @@ private:
 
 private:
     GLuint shader_;
+    GLenum type_;
 };
 

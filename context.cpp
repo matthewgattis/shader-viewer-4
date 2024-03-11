@@ -7,6 +7,24 @@
 #define LOG_MODULE_NAME ("Context")
 #include "log.hpp"
 
+void GLAPIENTRY MessageCallback(
+    GLenum source,
+    GLenum type,
+    GLuint id,
+    GLenum severity,
+    GLsizei length,
+    const GLchar* message,
+    const void* userParam)
+{
+    fprintf(
+        stdout,
+        "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+        type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "",
+        type,
+        severity,
+        message);
+}
+
 Context::Context(const std::shared_ptr<Window>& window) :
     window_(window)
 {
@@ -36,6 +54,9 @@ Context::Context(const std::shared_ptr<Window>& window) :
         if (err < 0)
             LOG_WARNING << "error in SDL_GL_SetSwapInterval. SDL_GetError: " << SDL_GetError() << std::endl;
     }
+
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(MessageCallback, 0);
 }
 
 Context::~Context()

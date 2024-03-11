@@ -5,7 +5,7 @@
 uniform vec2 Resolution;
 uniform float Time;
 
-in vec2 ex_Position;
+in vec2 FragCoord;
 
 #define MIN_DELTA       (0.01 / Resolution.y)
 #define MAX_DELTA       (2.0 / Resolution.y)
@@ -168,7 +168,7 @@ vec3 pal( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d )
 
 void main()
 {
-    vec2 p = vec2(Resolution.x / Resolution.y, 1.0) * ex_Position;
+    vec2 p = vec2(Resolution.x / Resolution.y, 1.0) * FragCoord;
 
     vec3 origin = vec3(0.0, -mod(Time * 0.1, 2.0) + 1.0, 0.0);
     vec3 direction = normalize(vec3(p, 1.0));

@@ -18,13 +18,20 @@ SandboxMaterial::SandboxMaterial(const std::string& fragment_shader_filename) :
 {
     LOG_INFO << "instance created. " << this << std::endl;
 
-    vertex_ = std::make_shared<Shader>(
-        "#version 140\nin vec2 in_Position; out vec2 ex_Position; void main() { ex_Position = in_Position; gl_Position = vec4(in_Position, 0., 1.); }",
-        GL_VERTEX_SHADER);
+    {
+        std::stringstream ss(
+            "#version 140\nin vec2 in_Position; out vec2 FragCoord; void main() { FragCoord = in_Position; gl_Position = vec4(in_Position, 0., 1.); }");
+        vertex_ = std::make_shared<Shader>(
+            ss,
+            GL_VERTEX_SHADER);
+    }
 
-    nothing_fragment_shader_ = std::make_shared<Shader>(
-        "#version 140\nvoid main() { gl_FragColor = vec4(0.); }",
-        GL_FRAGMENT_SHADER);
+    {
+        std::stringstream ss("#version 140\nvoid main() { gl_FragColor = vec4(0.); }");
+        blank_fragment_shader_ = std::make_shared<Shader>(
+            ss,
+            GL_FRAGMENT_SHADER);
+    }
 
     reload();
 }
@@ -54,7 +61,7 @@ void SandboxMaterial::reload()
         shaders =
         {
             vertex_,
-            nothing_fragment_shader_
+            blank_fragment_shader_
         };
         program_ = std::make_shared<Program>(shaders);
     }
@@ -76,6 +83,23 @@ void SandboxMaterial::reload()
     if (time_uniform_location != GL_INVALID_VALUE && time_uniform_location != GL_INVALID_OPERATION)
         time_uniform_location_ = time_uniform_location;
 
+    position_attrib_location_ = glGetAttribLocation(program_->get(), "in_Position");
+}
+
+void SandboxMaterial::blank()
+{
+    std::vector<std::shared_ptr<Shader>> shaders
+    {
+        vertex_,
+        blank_fragment_shader_
+    };
+    program_ = std::make_shared<Program>(shaders);
+
+    glUseProgram(program_->get());
+
+    view_matrix_uniform_location_ = std::optional<GLint>();
+    resolution_uniform_location_ = std::optional<GLint>();
+    time_uniform_location_ = std::optional<GLint>();
     position_attrib_location_ = glGetAttribLocation(program_->get(), "in_Position");
 }
 

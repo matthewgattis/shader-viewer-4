@@ -41,7 +41,6 @@ void App::run(const std::vector<std::string> &args)
     Uint32 start_time = SDL_GetTicks();
 
     bool done = false;
-    bool render = true;
     while (!done)
     {
         int frame_start = SDL_GetTicks();
@@ -62,12 +61,11 @@ void App::run(const std::vector<std::string> &args)
                             LOG_INFO << "shader reload" << std::endl;
                             sandbox_material->reload();
                             sandbox_material->setResolutionUniform(resolution.first, resolution.second);
-                            render = true;
                             break;
 
                         case SDLK_q:
                             LOG_INFO << "stop shader" << std::endl;
-                            render = false;
+                            sandbox_material->blank();
                             break;
                         
                         case SDLK_t:
@@ -122,7 +120,6 @@ void App::run(const std::vector<std::string> &args)
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        if (render)
         {
             sandbox_material->setTimeUniform((SDL_GetTicks() - start_time) / 1000.0);
 
