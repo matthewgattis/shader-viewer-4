@@ -8,6 +8,8 @@ include(vcpkg_dependencies.cmake)
 vcpkg_setup_toolchain()
 
 project(shader-viewer-4 VERSION 4.0.0)
+
+set(CMAKE_CXX_STANDARD 17)
 #set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 vcpkg_add_dependencies(

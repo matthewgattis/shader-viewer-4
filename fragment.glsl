@@ -1,74 +1,56 @@
 #version 140
 
-//uniform vec2 Resolution;
-//uniform float Time;
+#define M_PI                (3.1415926535897932384626433832795)
+
+uniform vec2 Resolution;
+uniform float Time;
 
 in vec2 ex_Position;
 
-//void main()
-//{
-    //vec2 p = vec2(Resolution.x / Resolution.y, 1.0) * ex_Position;
-    //gl_FragColor = vec4(p.x, 1.0, 1.0, 1.0);
-//}
+#define MIN_DELTA       (0.2 / Resolution.y)
+#define MAX_DELTA       (0.4 / Resolution.y)
+#define MAX_DISTANCE    (3.0)
 
-// MG - Playing with Kaleidoscopic IFS
-// http://www.fractalforums.com/ifs-iterated-function-systems/kaleidoscopic-(escape-time-ifs)/
-// http://blog.hvidtfeldts.net/index.php/2011/06/distance-estimated-3d-fractals-part-i/
-// If you know how to fix that artifacting, don't keep it to yourself.
-// It comes as a result of modulo.
-#ifdef GL_ES
-precision mediump float;
-#endif
+#define MAX_ITERATIONS  (48)
 
-uniform float Time;
-uniform vec2 Resolution;
+struct surface
+{
+    int object;
+    int iteration;
+};
 
-uniform mat4 eye;
-uniform vec3 eyeTranslate;
-uniform vec3 eyeRotate;
-
-#define M_PI                (3.1415926535897932384626433832795)
-
-// Ray Marcher
-#define MINDELTA            (0.00001)
-#define MAXDELTA            (0.01)
-#define MAXDIST             (8.0)
-// Provide 'float s', a distance.
-#define PRECISION           (mix(MINDELTA, MAXDELTA, s/MAXDIST))
-#define MAXITER             (32)
-
-// Background
-#define LIGHTVEC            (vec3(1.0, 1.0, 0.1))
-#define BACKROUND1          (vec3(0.6, 0.8, 1.0))
-#define BACKROUND2          (vec3(0.6, 0.8, 1.0)/2.0)
-
-#define USE_SIMPLEX_NOISE
-#define SIMPLEX_ITERATIONS1     8
-#define SIMPLEX_ITERATIONS2     1
-
-#define FRACT_ITER          20
-#define FRACT_SCALE         1.8
-#define FRACT_OFFSET            1.0
-
-vec3 vRotateX(vec3 p, float angle) {
+// ----------------------------------------------------------------------------
+// I don't know where these came from. But thanks to whoever wrote these.
+vec3 vRotateX(vec3 p, float angle)
+{
     float c = cos(angle);
     float s = sin(angle);
     return vec3(p.x, c*p.y+s*p.z, -s*p.y+c*p.z);
 }
 
-vec3 vRotateY(vec3 p, float angle) {
+vec3 vRotateY(vec3 p, float angle)
+{
     float c = cos(angle);
     float s = sin(angle);
     return vec3(c*p.x-s*p.z, p.y, s*p.x+c*p.z);
 }
 
-vec3 vRotateZ(vec3 p, float angle) {
+vec3 vRotateZ(vec3 p, float angle)
+{
     float c = cos(angle);
     float s = sin(angle);
     return vec3(c*p.x+s*p.y, -s*p.x+c*p.y, p.z);
 }
 
-float DE(vec3 z) {
+// ----------------------------------------------------------------------------
+// Kaleidoscopic (escape time) IFS
+// knighty
+// http://www.fractalforums.com/sierpinski-gasket/kaleidoscopic-(escape-time-ifs)/
+#define FRACT_ITER      (20)
+#define FRACT_SCALE     (1.8)
+#define FRACT_OFFSET    (1.0)
+float DE(vec3 z)
+{
     float c = 2.0;
     //z.y = mod(z.y, c)-c/2.0;
 
@@ -91,7 +73,13 @@ float DE(vec3 z) {
     return (length(z) ) * pow(FRACT_SCALE, -float(FRACT_ITER));
 }
 
+// ----------------------------------------------------------------------------
+// domain repetition - 2008, 2013, 2023
+// Inigo Quilez
 // https://iquilezles.org/articles/sdfrepetition/
+// p, input position
+// s, scale/size
+// returns, distance to surface
 float repeated( vec3 p, float s )
 {
     float id = round(p.y/s);
@@ -107,91 +95,107 @@ float repeated( vec3 p, float s )
     return d;
 }
 
-float getMap(in vec3 position, out int object, bool bump) {
-    float distance = MAXDIST;
-    float tempDist = MAXDIST;
+// ----------------------------------------------------------------------------
+// p, input position
+// o, output surface params
+// returns, distance to surface
+float getMap(in vec3 p, out surface o)
+{
+    o = surface(
+        0,
+        1);
 
-    distance = repeated(position, 2.); object = 1;
-    //distance = DE(position); object = 1;
-    
-    return distance;
+    return repeated(p, 2.0);
 }
 
-vec3 getNormal(vec3 p) {
-    vec3 s = p;
-    float h = MINDELTA;
-    int object;
+// ----------------------------------------------------------------------------
+// p, input position
+// returns, normal of closest surface
+vec3 getNormal(in vec3 p)
+{
+    float h = MIN_DELTA;
+    surface o;
     return normalize(vec3(
-            getMap(p + vec3(h, 0.0, 0.0), object, true) - getMap(p - vec3(h, 0.0, 0.0), object, true),
-            getMap(p + vec3(0.0, h, 0.0), object, true) - getMap(p - vec3(0.0, h, 0.0), object, true),
-            getMap(p + vec3(0.0, 0.0, h), object, true) - getMap(p - vec3(0.0, 0.0, h), object, true)));
+        getMap(p + vec3(h, 0.0, 0.0), o) - getMap(p - vec3(h, 0.0, 0.0), o),
+        getMap(p + vec3(0.0, h, 0.0), o) - getMap(p - vec3(0.0, h, 0.0), o),
+        getMap(p + vec3(0.0, 0.0, h), o) - getMap(p - vec3(0.0, 0.0, h), o)));
 }
 
-vec2 castRay(in vec3 origin, in vec3 direction, out int object) {
+// ----------------------------------------------------------------------------
+// p, input position
+// d, input ray direction
+// o, output surface params
+// returns, distance to surface
+float castRay(in vec3 p, in vec3 d, out surface o)
+{
     float distance = 0.0;
-    float delta = 0.0;
-    vec3 position;
-    object = 0;
-    int iter = 0;
-    
-    position = origin;
-    for (int i = 0; i < MAXITER; i++) {     
-        iter += 1;
-        delta = getMap(position, object, false);
-        
+    vec3 position = p;
+
+    for (int i = 0; i < MAX_ITERATIONS; i++)
+    {
+        float delta = getMap(p + distance * d, o);
         distance += delta;
-        position = origin + direction*distance;
-        float s = distance;
-        if (delta <= PRECISION) {
-            return vec2(distance, float(i));
+
+        if (distance > MAX_DISTANCE)
+        {
+            o.object = 0;
+            o.iteration = i;
+            return MAX_DISTANCE;
         }
-        if (distance > MAXDIST) {
-            break;
+
+        float x = distance / MAX_DISTANCE;
+        float m = mix(MIN_DELTA, MAX_DELTA, 1.0 - cos((x * M_PI) / 2.0));
+
+        if (delta < m)
+        {
+            o.iteration = i;
+            return distance;
         }
     }
-    
-    object = 0;
-    return vec2(MAXDIST, float(iter));
+
+    o.object = 0;
+    o.iteration = MAX_ITERATIONS;
+    return MAX_DISTANCE;
 }
 
-vec3 getShading(in vec2 distance, in vec3 origin, in vec3 direction, in int object) {
-    vec3 position = origin + direction * distance.x;
-    vec3 color = vec3(1.0, 1.0, 1.0);
-    
-    float cheapAO = distance.y/float(MAXITER);
-    
-    if (object == 1) {
-        color = vec3(1.0, 1.0, 1.0);
-    }
-    
-    return mix(color, vec3(0.0, 0.0, 0.0), cheapAO);
+// ----------------------------------------------------------------------------
+// Palettes
+// Inigo Quilez
+// https://www.shadertoy.com/view/ll2GD3
+vec3 pal( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d )
+{
+    return a + b*cos( 6.28318*(c*t+d) );
 }
 
-vec3 drawScene(in vec3 origin, in vec3 direction) {
-    int object = 0;
-    
-    vec2 distance = castRay(origin, direction, object);
-    
-    return getShading(distance, origin, direction, object);
-}
-
-void main() {
-
+void main()
+{
     vec2 p = vec2(Resolution.x / Resolution.y, 1.0) * ex_Position;
 
-    //vec2 p=(gl_FragCoord.xy/resolution.y)*2.0;
-    //p.x-=resolution.x/resolution.y*1.0;p.y-=1.0;
+    vec3 origin = vec3(0.0, -mod(Time * 0.1, 2.0) + 1.0, 0.0);
+    vec3 direction = normalize(vec3(p, 1.0));
+    direction = vRotateZ(direction, Time * 0.1);
+    direction = vRotateX(direction, -M_PI / 2.0);
 
-    //vec3 origin = vec3(0.0, 0.0, 0.0) - eyeTranslate/128.0;
-    vec3 origin = vec3(0.0, -mod(Time*0.1, 2.0)+1.0, 0.0);
-    vec3 direction = normalize(vec3(p.x,p.y,1.0));
+    surface object;
+    float distance = castRay(origin, direction, object);
+    
+    float cheap_ao = 1.0 - float(object.iteration) / float(MAX_ITERATIONS);
 
-    direction = vRotateZ(direction, Time*0.1);
-    direction = vRotateX(direction, eyeRotate.x-M_PI/2.0);
-    //direction = vRotateZ(direction, eyeRotate.z);
+    // https://www.shadertoy.com/view/ll2GD3
+    // Line 28
+    vec3 color = pal(
+        pow(cheap_ao, 0.6),
+        vec3(0.5, 0.5, 0.5),
+        vec3(0.5, 0.5, 0.5),
+        vec3(1.0, 1.0, 1.0),
+        vec3(0.0, 0.10, 0.20));
 
-    vec3 color = drawScene(origin, direction);
+    color = mix(vec3(0.0), color, cheap_ao);
 
-    gl_FragColor = vec4(pow(color,vec3(1.0/2.2)), 1.0);
+    color = pow(
+        clamp(color, vec3(0.0), vec3(1.0)),
+        vec3(1.0 / 2.2));
+
+    gl_FragColor = vec4(color, 1.0);
 }
 
