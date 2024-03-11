@@ -1,6 +1,7 @@
 #include "program.hpp"
 
 #include "shader.hpp"
+#include <stdexcept>
 
 #define LOG_MODULE_NAME ("Program")
 #include "log.hpp"
@@ -20,20 +21,32 @@ Program::Program(const std::vector<std::shared_ptr<Shader>>& shaders) :
     GLint info_log_length = 0;
     glGetProgramiv(program_, GL_INFO_LOG_LENGTH, &info_log_length);
 
+    std::string info_log;
     if (info_log_length > 0)
     {
-        char *info_log = new char[info_log_length + 1]();
+        char *buffer = new char[info_log_length + 1]();
 
-        glGetProgramInfoLog(program_, info_log_length, nullptr, info_log);
-        LOG_INFO << "program info log: " << info_log << std::endl;
+        glGetProgramInfoLog(program_, info_log_length, nullptr, buffer);
 
-        delete[] info_log;
+        info_log = buffer;
+        delete[] buffer;
     }
 
     GLint link_status = 0;
     glGetProgramiv(program_, GL_LINK_STATUS, &link_status);
     if (link_status == GL_FALSE)
-        LOG_WARNING << "shader program link failed" << std::endl;
+    {
+        std::string err = "shader program link failed";
+        LOG_WARNING << err<< std::endl;
+        throw std::runtime_error(err);
+    }
+    else
+    {
+        if (info_log.length())
+            LOG_INFO << "program linked successfully: " << info_log << std::endl;
+        else
+            LOG_INFO << "program linked successfully" << std::endl;
+    }
 }
 
 Program::~Program()

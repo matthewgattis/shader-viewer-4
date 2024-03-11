@@ -7,8 +7,8 @@ uniform float Time;
 
 in vec2 ex_Position;
 
-#define MIN_DELTA       (0.2 / Resolution.y)
-#define MAX_DELTA       (0.4 / Resolution.y)
+#define MIN_DELTA       (0.01 / Resolution.y)
+#define MAX_DELTA       (2.0 / Resolution.y)
 #define MAX_DISTANCE    (3.0)
 
 #define MAX_ITERATIONS  (48)
@@ -143,8 +143,7 @@ float castRay(in vec3 p, in vec3 d, out surface o)
             return MAX_DISTANCE;
         }
 
-        float x = distance / MAX_DISTANCE;
-        float m = mix(MIN_DELTA, MAX_DELTA, 1.0 - cos((x * M_PI) / 2.0));
+        float m = mix(MIN_DELTA, MAX_DELTA, distance / MAX_DISTANCE);
 
         if (delta < m)
         {

@@ -46,18 +46,18 @@ void SandboxMaterial::reload()
             vertex_,
             std::make_shared<Shader>(ifs, GL_FRAGMENT_SHADER)
         };
+        program_ = std::make_shared<Program>(shaders);
     }
     catch (std::runtime_error e)
     {
-        LOG_WARNING << "error in shader compilation" << std::endl;
+        LOG_WARNING << "error in shader/program compile/link. Using fallback shader" << std::endl;
         shaders =
         {
             vertex_,
             nothing_fragment_shader_
         };
+        program_ = std::make_shared<Program>(shaders);
     }
-
-    program_ = std::make_shared<Program>(shaders);
 
     glUseProgram(program_->get());
 
