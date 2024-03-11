@@ -102,6 +102,10 @@ void App::run(const std::vector<std::string> &args)
                         case SDLK_6:
                             window->setWindowSize(2048, 1536);
                             break;
+
+                        case SDLK_7:
+                            window->setWindowSize(1366, 768);
+                            break;
                     }
                     break;
                 case SDL_WINDOWEVENT:
