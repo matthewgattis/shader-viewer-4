@@ -32,9 +32,9 @@ uniform vec3 eyeRotate;
 // Ray Marcher
 #define MINDELTA            (0.00001)
 #define MAXDELTA            (0.01)
-#define MAXDIST             (16.0)
+#define MAXDIST             (8.0)
 // Provide 'float s', a distance.
-#define PRECISION           (mix(MINDELTA, MAXDELTA, pow(s/MAXDIST, 0.9)))
+#define PRECISION           (mix(MINDELTA, MAXDELTA, s/MAXDIST))
 #define MAXITER             (32)
 
 // Background
@@ -70,7 +70,7 @@ vec3 vRotateZ(vec3 p, float angle) {
 
 float DE(vec3 z) {
     float c = 2.0;
-    z.y = mod(z.y, c)-c/2.0;
+    //z.y = mod(z.y, c)-c/2.0;
 
     z = vRotateZ(z, M_PI/2.0);
 
@@ -91,11 +91,28 @@ float DE(vec3 z) {
     return (length(z) ) * pow(FRACT_SCALE, -float(FRACT_ITER));
 }
 
+// https://iquilezles.org/articles/sdfrepetition/
+float repeated( vec3 p, float s )
+{
+    float id = round(p.y/s);
+    float  o = sign(p.y-s*id); // neighbor offset direction
+    
+    float d = 1e20;
+    for( int i=0; i<2; i++ )
+    {
+        float rid = id + float(i)*o;
+        vec3 r = vec3(p.x, p.y - s*rid, p.z);
+        d = min( d, DE(r) );
+    }
+    return d;
+}
+
 float getMap(in vec3 position, out int object, bool bump) {
     float distance = MAXDIST;
     float tempDist = MAXDIST;
 
-    distance = DE(position); object = 1;
+    distance = repeated(position, 2.); object = 1;
+    //distance = DE(position); object = 1;
     
     return distance;
 }
