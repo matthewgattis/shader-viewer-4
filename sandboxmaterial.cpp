@@ -22,6 +22,10 @@ SandboxMaterial::SandboxMaterial(const std::string& fragment_shader_filename) :
         "#version 140\nin vec2 in_Position; out vec2 ex_Position; void main() { ex_Position = in_Position; gl_Position = vec4(in_Position, 0., 1.); }",
         GL_VERTEX_SHADER);
 
+    nothing_fragment_shader_ = std::make_shared<Shader>(
+        "#version 140\nvoid main() { gl_FragColor = vec4(0.); }",
+        GL_FRAGMENT_SHADER);
+
     reload();
 }
 
@@ -33,11 +37,26 @@ void SandboxMaterial::useMaterial()
 void SandboxMaterial::reload()
 {
     std::ifstream ifs(fragment_shader_filename_);
-    std::vector<std::shared_ptr<Shader>> shaders
+    std::vector<std::shared_ptr<Shader>> shaders(2);
+
+    try
     {
-        vertex_,
-        std::make_shared<Shader>(ifs, GL_FRAGMENT_SHADER)
-    };
+        shaders =
+        {
+            vertex_,
+            std::make_shared<Shader>(ifs, GL_FRAGMENT_SHADER)
+        };
+    }
+    catch (std::runtime_error e)
+    {
+        LOG_WARNING << "error in shader compilation" << std::endl;
+        shaders =
+        {
+            vertex_,
+            nothing_fragment_shader_
+        };
+    }
+
     program_ = std::make_shared<Program>(shaders);
 
     glUseProgram(program_->get());

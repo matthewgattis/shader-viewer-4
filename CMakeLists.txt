@@ -46,6 +46,7 @@ set(${PROJECT_NAME}_include
     shader.hpp
     program.hpp
     sandbox.hpp
+    material.hpp
     sandboxmaterial.hpp
     planegeometry.hpp
     window.hpp

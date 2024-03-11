@@ -75,8 +75,32 @@ void App::run(const std::vector<std::string> &args)
                             start_time = SDL_GetTicks();
                             break;
 
-                        case SDLK_1:
+                        case SDLK_0:
                             window->setWindowSize(default_resolution.first, default_resolution.second);
+                            break;
+
+                        case SDLK_1:
+                            window->setWindowSize(800, 600);
+                            break;
+
+                        case SDLK_2:
+                            window->setWindowSize(1024, 768);
+                            break;
+
+                        case SDLK_3:
+                            window->setWindowSize(1280, 960);
+                            break;
+
+                        case SDLK_4:
+                            window->setWindowSize(1440, 1080);
+                            break;
+
+                        case SDLK_5:
+                            window->setWindowSize(1600, 1200);
+                            break;
+
+                        case SDLK_6:
+                            window->setWindowSize(2048, 1536);
                             break;
                     }
                     break;

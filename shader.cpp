@@ -53,22 +53,32 @@ void Shader::log()
     GLint info_log_length = 0;
     glGetShaderiv(shader_, GL_INFO_LOG_LENGTH, &info_log_length);
 
+    std::string info_log;
     if (info_log_length > 0)
     {
-        GLchar *info_log = new GLchar[info_log_length + 1]();
+        GLchar *buffer = new GLchar[info_log_length + 1]();
 
-        glGetShaderInfoLog(shader_, info_log_length, nullptr, info_log);
-        LOG_INFO << "glGetShaderInfoLog: " << info_log << std::endl;
+        glGetShaderInfoLog(shader_, info_log_length, nullptr, buffer);
 
-        delete[] info_log;
+        info_log = buffer;
+        delete[] buffer;
     }
 
     GLint compile_status;
     glGetShaderiv(shader_, GL_COMPILE_STATUS, &compile_status);
     if (compile_status == GL_FALSE)
-        LOG_WARNING << "shader compilation failed" << std::endl;
+    {
+        std::string err = "shader compilation failed: " + info_log;
+        LOG_ERROR << err << std::endl;
+        throw std::runtime_error(err);
+    }
     else
-        LOG_INFO << "shader compiled successfully" << std::endl;
+    {
+        if (info_log.length() > 0)
+            LOG_INFO << "shader compiled successfully: " << info_log << std::endl;
+        else
+            LOG_INFO << "shader compiled successfully" << std::endl;
+    }
 }
 
 Shader::~Shader()
