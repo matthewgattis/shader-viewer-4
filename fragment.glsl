@@ -170,7 +170,7 @@ vec3 pal( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d )
 
 void main()
 {
-    const int aa = 2;
+    const int aa = 1;
     const float b = float(aa);
     const float c = b * b;
 
