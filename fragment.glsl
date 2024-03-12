@@ -4,12 +4,13 @@
 
 uniform vec2 Resolution;
 uniform float Time;
+uniform mat4 ViewMatrix;
 
 in vec2 FragCoord;
 
 #define MIN_DELTA       (0.01 / Resolution.y)
 #define MAX_DELTA       (2.0 / Resolution.y)
-#define MAX_DISTANCE    (3.0)
+#define MAX_DISTANCE    (8.0)
 
 #define MAX_ITERATIONS  (48)
 
@@ -105,7 +106,8 @@ float getMap(in vec3 p, out surface o)
         0,
         1);
 
-    return repeated(p, 2.0);
+    //return repeated(p, 4.0);
+    return DE(p);
 }
 
 // ----------------------------------------------------------------------------
@@ -143,7 +145,7 @@ float castRay(in vec3 p, in vec3 d, out surface o)
             return MAX_DISTANCE;
         }
 
-        float m = mix(MIN_DELTA, MAX_DELTA, distance / MAX_DISTANCE);
+        float m = mix(MIN_DELTA, MAX_DELTA, distance / 4.0);
 
         if (delta < m)
         {
@@ -170,20 +172,25 @@ void main()
 {
     vec2 p = vec2(Resolution.x / Resolution.y, 1.0) * FragCoord;
 
-    vec3 origin = vec3(0.0, -mod(Time * 0.1, 2.0) + 1.0, 0.0);
-    vec3 direction = normalize(vec3(p, 1.0));
-    direction = vRotateZ(direction, Time * 0.1);
-    direction = vRotateX(direction, -M_PI / 2.0);
+    //vec3 origin = vec3(0.0, -mod(Time * 0.1, 2.0) + 1.0, 0.0);
+
+    vec3 origin = (2.5 * ViewMatrix * vec4(vec3(0.0), 1.0)).xyz;
+    vec3 direction = (ViewMatrix * vec4(normalize(vec3(p, -1.0)), 0.0)).xyz;
+
+    //direction = vRotateZ(direction, Time * 0.1);
+    //direction = vRotateX(direction, -M_PI / 2.0);
 
     surface object;
     float distance = castRay(origin, direction, object);
+
+    gl_FragDepth = distance;
     
     float cheap_ao = 1.0 - float(object.iteration) / float(MAX_ITERATIONS);
 
     // https://www.shadertoy.com/view/ll2GD3
     // Line 28
     vec3 color = pal(
-        pow(cheap_ao, 0.6),
+        pow(cheap_ao, 0.8),
         vec3(0.5, 0.5, 0.5),
         vec3(0.5, 0.5, 0.5),
         vec3(1.0, 1.0, 1.0),

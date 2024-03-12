@@ -90,3 +90,11 @@ void Window::setWindowSize(int width, int height)
     SDL_SetWindowSize(sdl_window_, width, height);
 }
 
+void Window::setFullscreen(bool fullscreen)
+{
+	if (fullscreen == true)
+		SDL_SetWindowFullscreen(sdl_window_, SDL_WINDOW_FULLSCREEN_DESKTOP);
+	else
+		SDL_SetWindowFullscreen(sdl_window_, 0);
+}
+

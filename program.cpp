@@ -1,7 +1,9 @@
 #include "program.hpp"
 
-#include "shader.hpp"
+#include <string>
 #include <stdexcept>
+
+#include "shader.hpp"
 
 #define LOG_MODULE_NAME ("Program")
 #include "log.hpp"

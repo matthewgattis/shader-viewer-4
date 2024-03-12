@@ -19,10 +19,9 @@ Sandbox::Sandbox(const std::shared_ptr<SandboxMaterial>& sandbox_material) :
     geometry_ = std::make_shared<PlaneGeometry>();
 }
 
-void Sandbox::render(const glm::mat4& view_matrix)
+void Sandbox::render()
 {
     sandbox_material_->useMaterial();
-    sandbox_material_->setViewMatrixUniform(view_matrix);
     geometry_->render(sandbox_material_->getPositionAttrib());
 }
 

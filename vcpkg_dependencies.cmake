@@ -10,7 +10,7 @@ function(vcpkg_setup_toolchain)
         if(DEFINED ENV{VCPKG_ROOT})
             # Set from system environment variable.
             message(STATUS "vcpkg_setup_toolchain: setting VCPKG_ROOT from system environment variable")
-            set(VCPKG_ROOT "$ENV{VCPKG_ROOT}")
+            file(TO_CMAKE_PATH "$ENV{VCPKG_ROOT}" VCPKG_ROOT)
         endif()
     endif()
 
@@ -56,16 +56,15 @@ function(vcpkg_add_dependencies)
     message(STATUS "vcpkg_add_dependencies: VCPKG_PLATFORM_TOOLSET (${VCPKG_PLATFORM_TOOLSET})")
     message(STATUS "vcpkg_add_dependencies: VCPKG_TARGET_TRIPLET (${VCPKG_TARGET_TRIPLET})")
 
-    if(NOT EXISTS ${VCPKG_EXEC})
+    if(NOT EXISTS "${VCPKG_EXEC}")
         # Quit if we have no vcpkg executable.
         message(FATAL_ERROR "vcpkg_add_dependencies: executable file VCPKG_EXEC (${VCPKG_EXEC}) does not exist. You need to bootstrap. https://vcpkg.io/en/getting-started.html")
     endif()
 
     message(STATUS "vcpkg_add_dependencies: install (${ARGN})")
     execute_process(
-        COMMAND ${VCPKG_EXEC} install ${ARGN} --recurse --triplet ${VCPKG_TARGET_TRIPLET} --vcpkg-root "${VCPKG_ROOT}"
-        WORKING_DIRECTORY ${VCPKG_ROOT}
+        COMMAND "${VCPKG_EXEC}" install ${ARGN} --triplet "${VCPKG_TARGET_TRIPLET}"
+        WORKING_DIRECTORY "${VCPKG_ROOT}"
         )
 endfunction()
-
 

@@ -10,6 +10,6 @@ class Geometry;
 class Renderable
 {
 public:
-    virtual void render(const glm::mat4& view_matrix) = 0;
+    virtual void render() = 0;
 };
 

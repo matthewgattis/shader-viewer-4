@@ -69,7 +69,7 @@ void SandboxMaterial::reload()
     glUseProgram(program_->get());
 
     GLint view_matrix_uniform_location;
-    view_matrix_uniform_location = glGetUniformLocation(program_->get(), "ModelViewMatrix");
+    view_matrix_uniform_location = glGetUniformLocation(program_->get(), "ViewMatrix");
     if (view_matrix_uniform_location != GL_INVALID_VALUE && view_matrix_uniform_location != GL_INVALID_OPERATION)
         view_matrix_uniform_location_ = view_matrix_uniform_location;
 

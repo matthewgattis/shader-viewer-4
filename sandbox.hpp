@@ -14,7 +14,7 @@ public:
     Sandbox(const std::shared_ptr<SandboxMaterial>& sandbox_material);
     Sandbox() = delete;
 
-    void render(const glm::mat4& view_matrix) override;
+    void render() override;
 
 private:
     std::shared_ptr<Geometry> geometry_;

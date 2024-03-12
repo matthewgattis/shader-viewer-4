@@ -39,6 +39,7 @@ set(${PROJECT_NAME}_source
     sandboxmaterial.cpp
     planegeometry.cpp
     window.cpp
+    camera.cpp
     )
 
 set(${PROJECT_NAME}_include
@@ -53,6 +54,7 @@ set(${PROJECT_NAME}_include
     planegeometry.hpp
     window.hpp
     renderable.hpp
+    camera.hpp
     )
 
 add_executable(${PROJECT_NAME}
