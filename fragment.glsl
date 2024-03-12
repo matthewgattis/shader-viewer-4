@@ -55,12 +55,12 @@ float DE(vec3 z)
     float c = 2.0;
     //z.y = mod(z.y, c)-c/2.0;
 
-    z = vRotateZ(z, M_PI/2.0);
+    //z = vRotateZ(z, M_PI/2.0);
 
     float r;
     int n1 = 0;
     for (int n = 0; n < FRACT_ITER; n++) {
-        float rotate = M_PI*0.5;
+        float rotate = M_PI*0.5; // + 0.1 * sin(Time / 1000.0);
         z = vRotateX(z, rotate);
         z = vRotateY(z, rotate);
         z = vRotateZ(z, rotate);
@@ -170,38 +170,49 @@ vec3 pal( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d )
 
 void main()
 {
-    vec2 p = vec2(Resolution.x / Resolution.y, 1.0) * FragCoord;
+    const int aa = 2;
+    const float b = float(aa);
+    const float c = b * b;
 
-    //vec3 origin = vec3(0.0, -mod(Time * 0.1, 2.0) + 1.0, 0.0);
+    vec3 aa_color = vec3(0.0);
 
-    vec3 origin = (2.5 * ViewMatrix * vec4(vec3(0.0), 1.0)).xyz;
-    vec3 direction = (ViewMatrix * vec4(normalize(vec3(p, -1.0)), 0.0)).xyz;
+    for (int i = 0; i < aa; i++)
+        for (int j = 0; j < aa; j++)
+            {
+                vec2 p = vec2(Resolution.x / Resolution.y, 1.0) * FragCoord + vec2(i, j) / Resolution / b;
 
-    //direction = vRotateZ(direction, Time * 0.1);
-    //direction = vRotateX(direction, -M_PI / 2.0);
+                //vec3 origin = vec3(0.0, -mod(Time * 0.1, 2.0) + 1.0, 0.0);
 
-    surface object;
-    float distance = castRay(origin, direction, object);
+                vec3 origin = (2.5 * ViewMatrix * vec4(vec3(0.0), 1.0)).xyz;
+                vec3 direction = (ViewMatrix * vec4(normalize(vec3(p, -1.0)), 0.0)).xyz;
 
-    gl_FragDepth = distance;
-    
-    float cheap_ao = 1.0 - float(object.iteration) / float(MAX_ITERATIONS);
+                //direction = vRotateZ(direction, Time * 0.1);
+                //direction = vRotateX(direction, -M_PI / 2.0);
 
-    // https://www.shadertoy.com/view/ll2GD3
-    // Line 28
-    vec3 color = pal(
-        pow(cheap_ao, 0.8),
-        vec3(0.5, 0.5, 0.5),
-        vec3(0.5, 0.5, 0.5),
-        vec3(1.0, 1.0, 1.0),
-        vec3(0.0, 0.10, 0.20));
+                surface object;
+                float distance = castRay(origin, direction, object);
 
-    color = mix(vec3(0.0), color, cheap_ao);
+                gl_FragDepth = distance;
+                
+                float cheap_ao = 1.0 - float(object.iteration) / float(MAX_ITERATIONS);
 
-    color = pow(
-        clamp(color, vec3(0.0), vec3(1.0)),
-        vec3(1.0 / 2.2));
+                // https://www.shadertoy.com/view/ll2GD3
+                // Line 28
+                vec3 color = pal(
+                    pow(cheap_ao, 0.8),
+                    vec3(0.5, 0.5, 0.5),
+                    vec3(0.5, 0.5, 0.5),
+                    vec3(1.0, 1.0, 1.0),
+                    vec3(0.0, 0.10, 0.20));
 
-    gl_FragColor = vec4(color, 1.0);
+                color = mix(vec3(0.0), color, cheap_ao);
+
+                aa_color += clamp(
+                    pow(clamp(color, vec3(0.0), vec3(1.0)), vec3(1.0 / 2.2)),
+                    vec3(0.0),
+                    vec3(1.0)) / c;
+            }
+
+    gl_FragColor = vec4(aa_color, 1.0);
 }
 
