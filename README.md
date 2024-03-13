@@ -53,3 +53,4 @@ $ ./shader-viewer-4
     - Think I can use this to implement a double click to focus.
     - Similar to MeshLab.
 - More example shaders.
+- Refactor `app.cpp`.
