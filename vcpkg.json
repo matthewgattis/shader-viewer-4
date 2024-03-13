@@ -1,0 +1,9 @@
+{
+  "name": "shader-viewer-4",
+  "dependencies": [
+    "glew",
+    "glm",
+    "sdl2",
+    "opengl"
+  ]
+}
