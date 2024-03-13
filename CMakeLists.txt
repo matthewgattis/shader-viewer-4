@@ -30,31 +30,31 @@ find_package(GLEW REQUIRED)
 #find_package(jsoncpp CONFIG REQUIRED)
 
 set(${PROJECT_NAME}_source
-    "app.cpp"
-    "context.cpp"
-    "main.cpp"
-    "shader.cpp"
-    "program.cpp"
-    "sandbox.cpp"
-    "sandboxmaterial.cpp"
-    "planegeometry.cpp"
-    "window.cpp"
-    "camera.cpp"
+    "src/app.cpp"
+    "src/context.cpp"
+    "src/main.cpp"
+    "src/shader.cpp"
+    "src/program.cpp"
+    "src/sandbox.cpp"
+    "src/sandboxmaterial.cpp"
+    "src/planegeometry.cpp"
+    "src/window.cpp"
+    "src/camera.cpp"
     )
 
 set(${PROJECT_NAME}_include
-    "log.hpp"
-    "app.hpp"
-    "context.hpp"
-    "shader.hpp"
-    "program.hpp"
-    "sandbox.hpp"
-    "material.hpp"
-    "sandboxmaterial.hpp"
-    "planegeometry.hpp"
-    "window.hpp"
-    "renderable.hpp"
-    "camera.hpp"
+    "src/log.hpp"
+    "src/app.hpp"
+    "src/context.hpp"
+    "src/shader.hpp"
+    "src/program.hpp"
+    "src/sandbox.hpp"
+    "src/material.hpp"
+    "src/sandboxmaterial.hpp"
+    "src/planegeometry.hpp"
+    "src/window.hpp"
+    "src/renderable.hpp"
+    "src/camera.hpp"
     )
 
 add_executable(${PROJECT_NAME}

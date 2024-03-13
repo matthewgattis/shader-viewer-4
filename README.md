@@ -34,17 +34,21 @@ $ ./shader-viewer-4
 
 ### Controls
 - Orbit controls:
-    - Right mouse button: Orbit/rotate around pivot.
-    - Middle mouse button: Pan view.
-    - Scroll wheel: Zoom in/out.
+    - *Right mouse button:* Orbit/rotate around pivot.
+    - *Middle mouse button:* Pan view.
+    - *Scroll wheel:* Zoom in/out.
 - Free look:
-    - Left mouse button: Free look.
-    - W, A, S, D: Move.
-    - Space: Ascend.
-    - Left Shift: Descend.
+    - *Left mouse button:* Free look.
+    - *W, A, S, D:* Move.
+    - *Space:* Ascend.
+    - *Left Shift:* Descend.
 - Both of these control schemes are active at the same time.
 - Camera movement speed is influenced by zoom.
     - Zoom in to slow down.
+- *R:* Reload shader.
+- *Q:* Unload shader.
+- *F, F11:* Fullscreen.
+- *C:* Reset camera.
 
 ## Future
 - Integrate argument parsing with `argparse`.
