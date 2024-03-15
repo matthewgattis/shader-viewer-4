@@ -22,7 +22,7 @@ public:
     GLint getPositionAttrib() override { return position_attrib_location_; }
 
     void setViewMatrixUniform(const glm::mat4& view_matrix) override;
-    void setResolutionUniform(float width, float height);
+    void setResolutionUniform(const glm::vec3& resolution);
     void setTimeUniform(float time);
 
     void reload();

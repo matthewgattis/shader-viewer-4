@@ -2,7 +2,7 @@
 
 #define M_PI                (3.1415926535897932384626433832795)
 
-uniform vec2 Resolution;
+uniform vec3 Resolution;
 uniform float Time;
 uniform mat4 ViewMatrix;
 
@@ -47,7 +47,7 @@ vec3 vRotateZ(vec3 p, float angle)
 // Kaleidoscopic (escape time) IFS
 // knighty
 // http://www.fractalforums.com/sierpinski-gasket/kaleidoscopic-(escape-time-ifs)/
-#define FRACT_ITER      (20)
+#define FRACT_ITER      (22)
 #define FRACT_SCALE     (1.8)
 #define FRACT_OFFSET    (1.0)
 float DE(vec3 z)
@@ -179,7 +179,7 @@ void main()
     for (int i = 0; i < aa; i++)
         for (int j = 0; j < aa; j++)
             {
-                vec2 p = vec2(Resolution.x / Resolution.y, 1.0) * FragCoord + vec2(i, j) / Resolution / b;
+                vec2 p = vec2(Resolution.z, 1.0) * FragCoord + vec2(i, j) / Resolution.xy / b;
 
                 //vec3 origin = vec3(0.0, -mod(Time * 0.1, 2.0) + 1.0, 0.0);
 

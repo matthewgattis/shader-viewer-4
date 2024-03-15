@@ -27,6 +27,8 @@ find_package(SDL2 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLM CONFIG REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(imgui CONFIG REQUIRED)
+find_package(argparse CONFIG REQUIRED)
 #find_package(jsoncpp CONFIG REQUIRED)
 
 set(${PROJECT_NAME}_source
@@ -40,6 +42,7 @@ set(${PROJECT_NAME}_source
     "src/planegeometry.cpp"
     "src/window.cpp"
     "src/camera.cpp"
+    "src/ui.cpp"
     )
 
 set(${PROJECT_NAME}_include
@@ -55,6 +58,7 @@ set(${PROJECT_NAME}_include
     "src/window.hpp"
     "src/renderable.hpp"
     "src/camera.hpp"
+    "src/ui.hpp"
     )
 
 add_executable(${PROJECT_NAME}
@@ -66,10 +70,12 @@ add_executable(${PROJECT_NAME}
 #)
 
 target_link_libraries(${PROJECT_NAME}
+    PRIVATE argparse::argparse
     PRIVATE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
     PRIVATE OpenGL::GL
     PRIVATE glm::glm
     PRIVATE GLEW::GLEW
+    PRIVATE imgui::imgui
     #PRIVATE JsonCpp::JsonCpp
     )
 

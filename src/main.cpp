@@ -18,8 +18,8 @@ int main(int argc, char **argv)
 
     try
     {
-        App app;
-        app.run(args);
+        App app(args);
+        app.run();
     }
     catch (const std::exception &e)
     {

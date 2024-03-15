@@ -20,6 +20,8 @@ public:
     void setWindowSize(int width, int height);
     void setFullscreen(bool fullscreen);
 
+    float getDpi() const;
+
 private:
     SDL_Window *sdl_window_;
 

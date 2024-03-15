@@ -109,10 +109,10 @@ void SandboxMaterial::setViewMatrixUniform(const glm::mat4& view_matrix)
         glUniformMatrix4fv(view_matrix_uniform_location_.value(), 1, GL_FALSE, glm::value_ptr(view_matrix));
 }
 
-void SandboxMaterial::setResolutionUniform(float width, float height)
+void SandboxMaterial::setResolutionUniform(const glm::vec3& resolution)
 {
     if (resolution_uniform_location_.has_value())
-        glUniform2f(resolution_uniform_location_.value(), width, height);
+        glUniform3fv(resolution_uniform_location_.value(), 1, glm::value_ptr(resolution));
 }
 
 void SandboxMaterial::setTimeUniform(float time)

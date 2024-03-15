@@ -98,3 +98,12 @@ void Window::setFullscreen(bool fullscreen)
 		SDL_SetWindowFullscreen(sdl_window_, 0);
 }
 
+float Window::getDpi() const
+{
+    float ddpi;
+    float hdpi;
+    float vdpi;
+    int sdl_result = SDL_GetDisplayDPI(0, &ddpi, &hdpi, &vdpi);
+    return ddpi;
+}
+

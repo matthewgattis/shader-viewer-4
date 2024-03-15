@@ -1,6 +1,11 @@
 #include "camera.hpp"
 
+#include <iostream>
+
 #include <glm/gtc/matrix_transform.hpp>
+
+#define LOG_MODULE_NAME ("App")
+#include "log.hpp"
 
 constexpr glm::mat4 IDENTITY = glm::identity<glm::mat4>();
 constexpr float RAD = glm::pi<float>() / 180.0;
@@ -11,7 +16,9 @@ Camera::Camera(float distance, float min_distance, float max_distance) :
 	distance_(std::max(min_distance, std::min(distance, max_distance))),
 	min_distance_(min_distance),
 	max_distance_(max_distance),
-	velocity_(0.0)
+	velocity_(0.0),
+    acceleration_(0.0),
+    default_distance_(distance)
 {
 	view_matrix_[3].z = -distance;
 }
@@ -25,10 +32,13 @@ void Camera::rotate(float x, float y)
 	glm::mat4 r =
 		glm::rotate(IDENTITY, ROTATE_SPEED * RAD * x, up) *
 		glm::rotate(IDENTITY, ROTATE_SPEED * RAD * y, right);
+
 	glm::vec3 a = forward * distance_;
+
 	glm::mat4 b = glm::translate(
 		IDENTITY,
 		glm::vec3(r * glm::vec4(a, 0.0)) - a);
+
 	view_matrix_ = b * r * view_matrix_;
 }
 
@@ -53,15 +63,18 @@ void Camera::pan(float x, float y)
 void Camera::zoom(float z)
 {
 	float d = ZOOM_SPEED * distance_ * z;
+    
 	if (distance_ - d >= max_distance_)
 		d = distance_ - max_distance_;
+
 	if (distance_ - d <= min_distance_)
 		d = distance_ - min_distance_;
+
 	view_matrix_ = glm::translate(IDENTITY, forward * d) * view_matrix_;
 	distance_ = glm::max(min_distance_, glm::min(distance_ - d, max_distance_));
 }
 
-void Camera::update(float frame_delay, const glm::vec3& movement)
+void Camera::update(float frame_delay)
 {
 	if (frame_delay < glm::epsilon<float>())
 		return;
@@ -71,7 +84,7 @@ void Camera::update(float frame_delay, const glm::vec3& movement)
 	else
 		velocity_ -= FRICTION * frame_delay * glm::normalize(velocity_);
 
-	velocity_ += frame_delay * movement * ACCELERATION;
+	velocity_ += frame_delay * acceleration_ * ACCELERATION;
 
 	if (glm::length(velocity_) > MAX_VELOCITY)
 		velocity_ = MAX_VELOCITY * glm::normalize(velocity_);
@@ -81,5 +94,133 @@ void Camera::update(float frame_delay, const glm::vec3& movement)
 			IDENTITY,
 			frame_delay * distance_ * velocity_) *
 		view_matrix_;
+}
+
+void Camera::handleEvents(const SDL_Event& e, bool enabled)
+{
+    if (enabled == false)
+    {
+        acceleration_ = glm::vec3(0.0);
+        return;
+    }
+
+    switch (e.type)
+    {
+        case SDL_MOUSEMOTION:
+            {
+                if ((e.motion.state & SDL_BUTTON_LMASK) &&
+                    (e.motion.state & SDL_BUTTON_RMASK))
+                {
+                    zoom(-e.motion.yrel / 32.0);
+                }
+                else
+                {
+                    if (e.motion.state & SDL_BUTTON_LMASK)
+                        rotate2(e.motion.xrel, e.motion.yrel);
+
+                    if (e.motion.state & SDL_BUTTON_RMASK)
+                        rotate(e.motion.xrel, e.motion.yrel);
+                }
+
+                if (e.motion.state & SDL_BUTTON_MMASK)
+                    pan(e.motion.xrel, e.motion.yrel);
+            }
+            break;
+
+        case SDL_MOUSEWHEEL:
+            zoom(e.wheel.preciseY);
+            break;
+
+        case SDL_MOUSEBUTTONDOWN:
+            if (e.button.button == SDL_BUTTON_LEFT ||
+                e.button.button == SDL_BUTTON_RIGHT ||
+                e.button.button == SDL_BUTTON_MIDDLE)
+            {
+                SDL_ShowCursor(SDL_DISABLE);
+                SDL_SetRelativeMouseMode(SDL_TRUE);
+            }
+            break;
+
+        case SDL_MOUSEBUTTONUP:
+            if (e.button.button == SDL_BUTTON_LEFT ||
+                e.button.button == SDL_BUTTON_RIGHT ||
+                e.button.button == SDL_BUTTON_MIDDLE)
+            {
+                SDL_ShowCursor(SDL_ENABLE);
+                SDL_SetRelativeMouseMode(SDL_FALSE);
+            }
+            break;
+
+        case SDL_KEYUP:
+            switch (e.key.keysym.sym)
+            {
+                case SDLK_w:
+                    acceleration_.z = 0.0;
+                    break;
+
+                case SDLK_a:
+                    acceleration_.x = 0.0;
+                    break;
+
+                case SDLK_s:
+                    acceleration_.z = 0.0;
+                    break;
+
+                case SDLK_d:
+                    acceleration_.x = 0.0;
+                    break;
+
+                case SDLK_SPACE:
+                    acceleration_.y = 0.0;
+                    break;
+
+                case SDLK_LSHIFT:
+                    acceleration_.y = 0.0;
+                    break;
+            }
+            break;
+
+        case SDL_KEYDOWN:
+            switch (e.key.keysym.sym)
+            {
+                case SDLK_w:
+                    acceleration_.z = 1.0;
+                    break;
+
+                case SDLK_a:
+                    acceleration_.x = 1.0;
+                    break;
+
+                case SDLK_s:
+                    acceleration_.z = -1.0;
+                    break;
+
+                case SDLK_d:
+                    acceleration_.x = -1.0;
+                    break;
+
+                case SDLK_SPACE:
+                    acceleration_.y = -1.0;
+                    break;
+
+                case SDLK_LSHIFT:
+                    acceleration_.y = 1.0;
+                    break;
+
+                case SDLK_c:
+                    {
+                        LOG_INFO << "camera reset" << std::endl;
+                        
+                        distance_ = default_distance_;
+                        view_matrix_ = IDENTITY;
+                        view_matrix_[3].z = -distance_;
+
+                        acceleration_ = glm::vec3(0.0);
+                        velocity_ = glm::vec3(0.0);
+                    }
+                    break;
+            }
+            break;
+    }
 }
 
