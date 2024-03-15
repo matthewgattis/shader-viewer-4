@@ -25,11 +25,10 @@ $ cmake --build .
 ```
 
 ### Running
-- The shader viewer is currently setup to load a fragment shader called `fragment.glsl` from the current working directory.
-- To run the shader pictured above, copy `fragment.glsl` to the build folder and run.
+- The shader viewer accepts an arguemnt path to the fragment shader file to load. Defaulted to `fragment.glsl`.
+- If running from the build directory, you can load the example shader with:
 ```
-$ cp ../fragment.glsl ./
-$ ./shader-viewer-4
+$ ./shader-viewer-4 ../fragment.glsl
 ```
 
 ### Controls
