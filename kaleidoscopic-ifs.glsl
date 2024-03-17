@@ -8,39 +8,70 @@ uniform mat4 ViewMatrix;
 
 in vec2 FragCoord;
 
-#define MIN_DELTA       (1.0 / Resolution.y)
-#define MAX_DELTA       (10.0 / Resolution.y)
-#define MAX_DISTANCE    (32.0)
+#define MIN_DELTA       (0.01 / Resolution.y)
+#define MAX_DELTA       (2.0 / Resolution.y)
+#define MAX_DISTANCE    (8.0)
 
-#define MAX_ITERATIONS  (32)
+#define MAX_ITERATIONS  (48)
 
 struct surface
 {
     int object;
     int iteration;
-    float orbit;
 };
 
 // ----------------------------------------------------------------------------
-// distance functions
-// Inigo Quilez
-// https://iquilezles.org/articles/distfunctions/
-float sdBox( vec3 p, vec3 b )
+// I don't know where these came from. But thanks to whoever wrote these.
+vec3 vRotateX(vec3 p, float angle)
 {
-    vec3 q = abs(p) - b;
-    return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
+    float c = cos(angle);
+    float s = sin(angle);
+    return vec3(p.x, c*p.y+s*p.z, -s*p.y+c*p.z);
 }
 
-float doubleBox(vec3 p)
+vec3 vRotateY(vec3 p, float angle)
 {
-    const vec3 ONE = vec3(1.0);
-    const vec3 HALF = vec3(0.5);
-    
-    vec3 offset = HALF;// * sin(Time / 10.0);
+    float c = cos(angle);
+    float s = sin(angle);
+    return vec3(c*p.x-s*p.z, p.y, s*p.x+c*p.z);
+}
 
-    return min(
-        sdBox(p - offset, ONE),
-        sdBox(p + offset, ONE));;
+vec3 vRotateZ(vec3 p, float angle)
+{
+    float c = cos(angle);
+    float s = sin(angle);
+    return vec3(c*p.x+s*p.y, -s*p.x+c*p.y, p.z);
+}
+
+// ----------------------------------------------------------------------------
+// Kaleidoscopic (escape time) IFS
+// knighty
+// http://www.fractalforums.com/sierpinski-gasket/kaleidoscopic-(escape-time-ifs)/
+#define FRACT_ITER      (22)
+#define FRACT_SCALE     (1.8)
+#define FRACT_OFFSET    (1.0)
+float DE(vec3 z)
+{
+    float c = 2.0;
+    //z.y = mod(z.y, c)-c/2.0;
+
+    //z = vRotateZ(z, M_PI/2.0);
+
+    float r;
+    int n1 = 0;
+    for (int n = 0; n < FRACT_ITER; n++) {
+        float rotate = M_PI*0.5; // + 0.1 * sin(Time / 1000.0);
+        z = vRotateX(z, rotate);
+        z = vRotateY(z, rotate);
+        z = vRotateZ(z, rotate);
+
+        z.xy = abs(z.xy);
+        if (z.x+z.y<0.0) z.xy = -z.yx; // fold 1
+        if (z.x+z.z<0.0) z.xz = -z.zx; // fold 2
+        if (z.y+z.z<0.0) z.zy = -z.yz; // fold 3
+        z = z*FRACT_SCALE - FRACT_OFFSET*(FRACT_SCALE-1.0);
+    }
+    return (length(z) ) * pow(FRACT_SCALE, -float(FRACT_ITER));
 }
 
 // ----------------------------------------------------------------------------
@@ -52,17 +83,15 @@ float doubleBox(vec3 p)
 // returns, distance to surface
 float repeated( vec3 p, float s )
 {
-    vec3 id = round(p/s);
-    vec3  o = sign(p-s*id); // neighbor offset direction
+    float id = round(p.y/s);
+    float  o = sign(p.y-s*id); // neighbor offset direction
     
     float d = 1e20;
-    for( int k=0; k<2; k++ )
-    for( int j=0; j<2; j++ )
     for( int i=0; i<2; i++ )
     {
-        vec3 rid = id + vec3(i,j,k)*o;
-        vec3 r = p - s*rid;
-        d = min( d, doubleBox(r) );
+        float rid = id + float(i)*o;
+        vec3 r = vec3(p.x, p.y - s*rid, p.z);
+        d = min( d, DE(r) );
     }
     return d;
 }
@@ -75,11 +104,10 @@ float getMap(in vec3 p, out surface o)
 {
     o = surface(
         0,
-        1,
-        0.0f);
+        1);
 
-    //return repeated(p, 8.0);
-    return doubleBox(p);
+    //return repeated(p, 4.0);
+    return DE(p);
 }
 
 // ----------------------------------------------------------------------------
@@ -155,8 +183,7 @@ void main()
 
                 //vec3 origin = vec3(0.0, -mod(Time * 0.1, 2.0) + 1.0, 0.0);
 
-                const float ZOOM = 4.0;
-                vec3 origin = (ZOOM * ViewMatrix * vec4(vec3(0.0), 1.0)).xyz;
+                vec3 origin = (2.5 * ViewMatrix * vec4(vec3(0.0), 1.0)).xyz;
                 vec3 direction = (ViewMatrix * vec4(normalize(vec3(p, -1.0)), 0.0)).xyz;
 
                 //direction = vRotateZ(direction, Time * 0.1);
@@ -173,7 +200,10 @@ void main()
                 // Line 28
                 vec3 color = pal(
                     pow(cheap_ao, 0.8),
-                    vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(1.0,0.7,0.4),vec3(0.0,0.15,0.20));
+                    vec3(0.5, 0.5, 0.5),
+                    vec3(0.5, 0.5, 0.5),
+                    vec3(1.0, 1.0, 1.0),
+                    vec3(0.0, 0.10, 0.20));
 
                 color = mix(vec3(0.0), color, cheap_ao);
 

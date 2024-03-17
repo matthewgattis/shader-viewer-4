@@ -77,7 +77,7 @@ void App::run()
 
                 camera_->handleEvents(
                     e,
-                    !ImGui::GetIO().WantCaptureMouse);
+                    (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) == false);
 
                 handleEvents(e);
             }
