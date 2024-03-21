@@ -50,6 +50,7 @@ $ ./shader-viewer-4 ../example.glsl
     - Use UI to reduce camera pivot distance to slow down.
 - *R:* Reload shader.
 - *Q:* Unload shader.
+- *G:* Open GUI.
 - *F, F11:* Fullscreen.
 - *C:* Reset camera.
 
