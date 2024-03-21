@@ -22,11 +22,12 @@ public:
 
     float getDpi() const;
 
+    static const std::vector<std::pair<int, int>> default_resolution_list_;
+
 private:
     SDL_Window *sdl_window_;
 
 private:
-    static const std::vector<std::pair<int, int>> default_resolution_list_;
 
     int resolution_selection_;
 

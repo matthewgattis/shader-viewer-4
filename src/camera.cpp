@@ -14,13 +14,11 @@ constexpr float RAD = glm::pi<float>() / 180.0;
 Camera::Camera(float distance, float min_distance, float max_distance) :
 	view_matrix_(IDENTITY),
 	distance_(std::max(min_distance, std::min(distance, max_distance))),
-	min_distance_(min_distance),
-	max_distance_(max_distance),
 	velocity_(0.0),
     acceleration_(0.0),
     default_distance_(distance)
 {
-	view_matrix_[3].z = -distance;
+	view_matrix_[3].z = distance;
 }
 
 constexpr glm::vec3 right(1.0, 0.0, 0.0);
@@ -30,8 +28,8 @@ constexpr glm::vec3 forward(0.0, 0.0, 1.0);
 void Camera::rotate(float x, float y)
 {
 	glm::mat4 r =
-		glm::rotate(IDENTITY, ROTATE_SPEED * RAD * x, up) *
-		glm::rotate(IDENTITY, ROTATE_SPEED * RAD * y, right);
+		glm::rotate(IDENTITY, ROTATE_SPEED * RAD * -x, up) *
+		glm::rotate(IDENTITY, ROTATE_SPEED * RAD * -y, right);
 
 	glm::vec3 a = forward * distance_;
 
@@ -39,39 +37,34 @@ void Camera::rotate(float x, float y)
 		IDENTITY,
 		glm::vec3(r * glm::vec4(a, 0.0)) - a);
 
-	view_matrix_ = b * r * view_matrix_;
+	//view_matrix_ = b * r * view_matrix_;
+    view_matrix_ = view_matrix_ * (b * r);
 }
 
 void Camera::rotate2(float x, float y)
 {
 	glm::mat4 r =
-		glm::rotate(IDENTITY, ROTATE_SPEED * RAD * x, up) *
-		glm::rotate(IDENTITY, ROTATE_SPEED * RAD * y, right);
+		glm::rotate(IDENTITY, ROTATE_SPEED * RAD * -x, up) *
+		glm::rotate(IDENTITY, ROTATE_SPEED * RAD * -y, right);
 
-	view_matrix_ = r * view_matrix_;
+	view_matrix_ = view_matrix_ * r;
 }
 
 void Camera::pan(float x, float y)
 {
-	view_matrix_ =
-		glm::translate(
-			IDENTITY,
-			PAN_SPEED * distance_ * glm::vec3(x, -y, 0.0)) *
-		view_matrix_;
+    view_matrix_ =
+        view_matrix_ *
+        glm::translate(
+            IDENTITY,
+            PAN_SPEED * distance_ * glm::vec3(-x, y, 0.0));
 }
 
 void Camera::zoom(float z)
 {
-	float d = ZOOM_SPEED * distance_ * z;
-    
-	if (distance_ - d >= max_distance_)
-		d = distance_ - max_distance_;
+	float d = ZOOM_SPEED * distance_ * -z;
 
-	if (distance_ - d <= min_distance_)
-		d = distance_ - min_distance_;
-
-	view_matrix_ = glm::translate(IDENTITY, forward * d) * view_matrix_;
-	distance_ = glm::max(min_distance_, glm::min(distance_ - d, max_distance_));
+	view_matrix_ = view_matrix_ * glm::translate(IDENTITY, forward * d);
+    distance_ = distance_ + d;
 }
 
 void Camera::update(float frame_delay)
@@ -79,21 +72,28 @@ void Camera::update(float frame_delay)
 	if (frame_delay < glm::epsilon<float>())
 		return;
 
-	if (glm::length(velocity_) < FRICTION * frame_delay)
-		velocity_ = glm::vec3(0.0, 0.0, 0.0);
-	else
-		velocity_ -= FRICTION * frame_delay * glm::normalize(velocity_);
+    {
+        if (glm::length(velocity_) < FRICTION * frame_delay)
+            velocity_ = glm::vec3(0.0, 0.0, 0.0);
+        else
+            velocity_ -= FRICTION * frame_delay * glm::normalize(velocity_);
 
-	velocity_ += frame_delay * acceleration_ * ACCELERATION;
+        velocity_ += frame_delay * acceleration_ * ACCELERATION;
 
-	if (glm::length(velocity_) > MAX_VELOCITY)
-		velocity_ = MAX_VELOCITY * glm::normalize(velocity_);
+        if (glm::length(velocity_) > MAX_VELOCITY)
+            velocity_ = MAX_VELOCITY * glm::normalize(velocity_);
 
-	view_matrix_ =
-		glm::translate(
-			IDENTITY,
-			frame_delay * distance_ * velocity_) *
-		view_matrix_;
+        view_matrix_ =
+            view_matrix_ *
+            glm::translate(
+                IDENTITY,
+                frame_delay * distance_ * velocity_);
+    }
+}
+
+void Camera::setDistance(float distance)
+{
+    distance_ = glm::max(0.0f, distance);
 }
 
 void Camera::handleEvents(const SDL_Event& e, bool enabled)
@@ -111,7 +111,7 @@ void Camera::handleEvents(const SDL_Event& e, bool enabled)
                 if ((e.motion.state & SDL_BUTTON_LMASK) &&
                     (e.motion.state & SDL_BUTTON_RMASK))
                 {
-                    zoom(-e.motion.yrel / 32.0);
+                    zoom(-e.motion.yrel / 32.0f);
                 }
                 else
                 {
@@ -184,27 +184,27 @@ void Camera::handleEvents(const SDL_Event& e, bool enabled)
             switch (e.key.keysym.sym)
             {
                 case SDLK_w:
-                    acceleration_.z = 1.0;
-                    break;
-
-                case SDLK_a:
-                    acceleration_.x = 1.0;
-                    break;
-
-                case SDLK_s:
                     acceleration_.z = -1.0;
                     break;
 
-                case SDLK_d:
+                case SDLK_a:
                     acceleration_.x = -1.0;
                     break;
 
+                case SDLK_s:
+                    acceleration_.z = 1.0;
+                    break;
+
+                case SDLK_d:
+                    acceleration_.x = 1.0;
+                    break;
+
                 case SDLK_SPACE:
-                    acceleration_.y = -1.0;
+                    acceleration_.y = 1.0;
                     break;
 
                 case SDLK_LSHIFT:
-                    acceleration_.y = 1.0;
+                    acceleration_.y = -1.0;
                     break;
 
                 case SDLK_c:
@@ -213,7 +213,7 @@ void Camera::handleEvents(const SDL_Event& e, bool enabled)
                         
                         distance_ = default_distance_;
                         view_matrix_ = IDENTITY;
-                        view_matrix_[3].z = -distance_;
+                        view_matrix_[3].z = distance_;
 
                         acceleration_ = glm::vec3(0.0);
                         velocity_ = glm::vec3(0.0);

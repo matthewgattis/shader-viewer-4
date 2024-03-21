@@ -1,4 +1,4 @@
-#include "ui.hpp"
+#include "uicontext.hpp"
 
 #include "window.hpp"
 #include "context.hpp"
@@ -7,7 +7,7 @@
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl3.h"
 
-Ui::Ui(
+UiContext::UiContext(
     const std::shared_ptr<Window>& window,
     const std::shared_ptr<Context>& context)
 {
@@ -30,7 +30,7 @@ Ui::Ui(
     ImGui_ImplOpenGL3_Init("#version 130");
 }
 
-Ui::~Ui()
+UiContext::~UiContext()
 {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();

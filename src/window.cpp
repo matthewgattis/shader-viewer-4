@@ -5,6 +5,7 @@
 
 const std::vector<std::pair<int, int>> Window::default_resolution_list_ = 
 {
+    std::pair<int, int>(640, 480),
     std::pair<int, int>(800, 600),
     std::pair<int, int>(1024, 768),
     std::pair<int, int>(1280, 960),

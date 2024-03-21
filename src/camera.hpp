@@ -12,22 +12,20 @@ public:
 
 	void rotate(float x, float y);
 	void rotate2(float x, float y);
-
 	void pan(float x, float y);
-
 	void zoom(float z);
 
 	void update(float frame_delay);
     void handleEvents(const SDL_Event& e, bool enabled);
 
-	glm::mat4& get() { return view_matrix_; }
+    float getDistance() const { return distance_; }
+    void setDistance(float distance);
+
+public:
+	glm::mat4 view_matrix_;
 
 private:
-	glm::mat4 view_matrix_;
 	float distance_;
-	float min_distance_;
-	float max_distance_;
-
     float default_distance_;
 
     constexpr static float ROTATE_SPEED = 1.0 / 8.0;

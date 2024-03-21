@@ -3,15 +3,19 @@
 #include <SDL2/SDL.h>
 #include <argparse/argparse.hpp>
 
+#include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_opengl3.h"
+
 #include "window.hpp"
 #include "context.hpp"
 #include "sandboxmaterial.hpp"
 #include "sandbox.hpp"
 #include "camera.hpp"
-#include "ui.hpp"
-#include "imgui.h"
-#include "imgui_impl_sdl2.h"
-#include "imgui_impl_opengl3.h"
+#include "uicontext.hpp"
+#include "mainwindow.hpp"
+
+#include "cameraui.hpp"
 
 #define LOG_MODULE_NAME ("App")
 #include "log.hpp"
@@ -26,9 +30,9 @@ App::App(const std::vector<std::string> &args) :
 
     program.add_argument("shader_source")
         .help("shader file to load")
-        .default_value(std::string("fragment.glsl"));
+        .required();
 
-    program.parse_args(args);
+	program.parse_args(args);
 
     {
         int result;
@@ -46,7 +50,7 @@ App::App(const std::vector<std::string> &args) :
     }
 
     context_ = std::make_shared<Context>(window_);
-    ui_ = std::make_shared<Ui>(window_, context_);
+    ui_context_ = std::make_shared<UiContext>(window_, context_);
 
     LOG_INFO << "loading shader source: " << program.get<std::string>("shader_source") << std::endl;
 
@@ -55,6 +59,14 @@ App::App(const std::vector<std::string> &args) :
 
     sandbox_ = std::make_shared<Sandbox>(sandbox_material_);
     camera_ = std::make_shared<Camera>(1.0, 0.001, 1000.0);
+
+    main_window_ = std::make_shared<MainWindow>(
+        ui_context_,
+        "shader-viewer-4",
+        std::vector<std::pair<std::string, std::shared_ptr<Ui>>>
+		{
+            std::make_pair("Camera", std::make_shared<CameraUi>(camera_)),
+		});
 
     Uint32 start_time_ = SDL_GetTicks();
 }
@@ -88,7 +100,7 @@ void App::run()
         {
             camera_->update(frame_delay / 1000.0f);
 
-            sandbox_material_->setViewMatrixUniform(glm::inverse(camera_->get()));
+            sandbox_material_->setViewMatrixUniform(camera_->view_matrix_);
             sandbox_material_->setTimeUniform((SDL_GetTicks() - start_time_) / 1000.0);
 
             sandbox_->render();
@@ -99,8 +111,7 @@ void App::run()
             ImGui_ImplSDL2_NewFrame();
             ImGui::NewFrame();
 
-            if (show_demo_window)
-                ImGui::ShowDemoWindow(&show_demo_window);
+            main_window_->update();
 
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -115,13 +126,28 @@ void App::run()
 
 void App::handleEvents(const SDL_Event& e)
 {
-
     switch (e.type)
     {
         case SDL_QUIT:
             done_ = true;
             break;
 
+        case SDL_WINDOWEVENT:
+            if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+            {
+                LOG_INFO << "window resize: " << e.window.data1 << " " << e.window.data2 << std::endl;
+                resolution_ = glm::vec3(e.window.data1, e.window.data2, (double)e.window.data1 / (double)e.window.data2);
+                sandbox_material_->setResolutionUniform(resolution_);
+                glViewport(0, 0, e.window.data1, e.window.data2);
+            }
+            break;
+    }
+
+    if (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard)
+		return;
+
+    switch (e.type)
+    {
         case SDL_KEYDOWN:
             switch (e.key.keysym.sym)
             {
@@ -148,49 +174,33 @@ void App::handleEvents(const SDL_Event& e)
                     window_->setFullscreen(fullscreen_);
                     break;
 
+                case SDLK_g:
+                    LOG_INFO << "toggle GUI" << std::endl;
+                    main_window_->toggleShow();
+					break;
+
                 case SDLK_0:
-                    window_->setWindowSize(default_resolution_.x, default_resolution_.y);
+                    window_->setWindowSize(
+                        default_resolution_.x,
+                        default_resolution_.y);
                     break;
 
                 case SDLK_1:
-                    window_->setWindowSize(800, 600);
-                    break;
-
                 case SDLK_2:
-                    window_->setWindowSize(1024, 768);
-                    break;
-
                 case SDLK_3:
-                    window_->setWindowSize(1280, 960);
-                    break;
-
                 case SDLK_4:
-                    window_->setWindowSize(1440, 1080);
-                    break;
-
                 case SDLK_5:
-                    window_->setWindowSize(1600, 1200);
-                    break;
-
                 case SDLK_6:
-                    window_->setWindowSize(2048, 1536);
-                    break;
-
                 case SDLK_7:
-                    window_->setWindowSize(1366, 768);
+                    window_->setWindowSize(
+                        window_->default_resolution_list_[e.key.keysym.sym - SDLK_1].first,
+                        window_->default_resolution_list_[e.key.keysym.sym - SDLK_1].second);
                     break;
             }
             break;
 
-        case SDL_WINDOWEVENT:
-            if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
-            {
-                LOG_INFO << "window resize: " << e.window.data1 << " " << e.window.data2 << std::endl;
-                resolution_ = glm::vec3(e.window.data1, e.window.data2, (double)e.window.data1 / (double)e.window.data2);
-                sandbox_material_->setResolutionUniform(resolution_);
-                glViewport(0, 0, e.window.data1, e.window.data2);
-            }
-            break;
+    default:
+        break;
     }
 }
 

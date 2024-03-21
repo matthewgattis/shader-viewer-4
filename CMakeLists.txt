@@ -42,7 +42,9 @@ set(${PROJECT_NAME}_source
     "src/planegeometry.cpp"
     "src/window.cpp"
     "src/camera.cpp"
-    "src/ui.cpp"
+    "src/uicontext.cpp"
+    "src/mainwindow.cpp"
+    "src/cameraui.cpp"
     )
 
 set(${PROJECT_NAME}_include
@@ -58,7 +60,10 @@ set(${PROJECT_NAME}_include
     "src/window.hpp"
     "src/renderable.hpp"
     "src/camera.hpp"
+    "src/uicontext.hpp"
     "src/ui.hpp"
+    "src/mainwindow.hpp"
+    "src/cameraui.hpp"
     )
 
 add_executable(${PROJECT_NAME}

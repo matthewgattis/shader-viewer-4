@@ -9,10 +9,11 @@
 
 class Window;
 class Context;
-class Ui;
+class UiContext;
 class SandboxMaterial;
 class Sandbox;
 class Camera;
+class MainWindow;
 
 class App
 {
@@ -30,11 +31,13 @@ private:
     
     std::shared_ptr<Context> context_;
     std::shared_ptr<Window> window_;
-    std::shared_ptr<Ui> ui_;
+    std::shared_ptr<UiContext> ui_context_;
 
     std::shared_ptr<SandboxMaterial> sandbox_material_;
     std::shared_ptr<Sandbox> sandbox_;
     std::shared_ptr<Camera> camera_;
+
+    std::shared_ptr<MainWindow> main_window_;
     
     glm::vec3 resolution_;
     glm::vec3 default_resolution_;
