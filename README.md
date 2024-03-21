@@ -4,8 +4,6 @@ OpenGL based shader loading and rendering application, with built-in camera cont
 
 ![](docs/example.jpg)
 
-Resurected this project from incomplete source code from college. 
-
 ## Getting Started
 
 ### Prequisites
@@ -25,35 +23,41 @@ $ cmake --build .
 ```
 
 ### Running
-- The shader viewer accepts an arguemnt path to the fragment shader file to load. Defaulted to `fragment.glsl`.
+- The shader viewer accepts an arguemnt path to the fragment shader file to load.
 - If running from the build directory, you can load the example shader with:
 ```
-$ ./shader-viewer-4 ../fragment.glsl
+$ ./shader-viewer-4 ../example.glsl
 ```
+- The provided shaders can be quite demanding. They are presented here roughly in order from least to most.
+- `example.glsl`: Ray marched rendering of two cubes.
+- `kaleidoscopic-ifs.glsl`: Ray marched rendering of the Kaleidoscopic IFS fractal.
+- `mandelbox.glsl`: Ray marched rendering of the Mandelbox fractal.
 
 ### Controls
 - Orbit controls:
     - *Right mouse button:* Orbit/rotate around pivot.
     - *Middle mouse button:* Pan view.
     - *Scroll wheel:* Zoom in/out.
+    - *Left+right mouse button:* Zoom in/out.
 - Free look:
     - *Left mouse button:* Free look.
     - *W, A, S, D:* Move.
     - *Space:* Ascend.
-    - *Left Shift:* Descend.
+    - *Left shift:* Descend.
 - Both of these control schemes are active at the same time.
 - Camera movement speed is influenced by zoom.
     - Zoom in to slow down.
+    - Use UI to reduce camera pivot distance to slow down.
 - *R:* Reload shader.
 - *Q:* Unload shader.
 - *F, F11:* Fullscreen.
 - *C:* Reset camera.
 
-## Future
-- Integrate argument parsing with `argparse`.
-- Would be nice to pull in ImGui for more controls.
+## Tasks
+- Add more UI controls.
 - Pass camera projection matrix to shader.
     - Think I can use this to implement a double click to focus.
     - Similar to MeshLab.
-- More example shaders.
+    - Much less sure about this.
 - Refactor `app.cpp`.
+- Better example shader(s).
