@@ -40,7 +40,7 @@ void CameraUi::update()
 	{
 		float distance = camera_->getDistance();
 
-		ImGui::DragFloat("pivot distance", &distance, 0.01f);
+		ImGui::DragFloat("pivot distance", &distance, 0.001f);
 
         camera_->setDistance(distance);
 	}

@@ -37,7 +37,6 @@ void Camera::rotate(float x, float y)
 		IDENTITY,
 		glm::vec3(r * glm::vec4(a, 0.0)) - a);
 
-	//view_matrix_ = b * r * view_matrix_;
     view_matrix_ = view_matrix_ * (b * r);
 }
 
