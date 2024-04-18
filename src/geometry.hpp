@@ -1,10 +1,13 @@
 #pragma once
 
-#include <optional>
+#include <GL/glew.h>
+
+class Program;
+struct AttributeLocations;
 
 class Geometry
 {
 public:
-    virtual void render(GLint postion_attrib_location) = 0;
+    virtual void draw() = 0;
 };
 

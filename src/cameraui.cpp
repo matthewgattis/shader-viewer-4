@@ -16,6 +16,7 @@ CameraUi::CameraUi(const std::shared_ptr<Camera>& camera) :
 
 void CameraUi::update()
 {
+    /*
 	auto& view_matrix = camera_->view_matrix_;
 
 	{
@@ -68,5 +69,5 @@ void CameraUi::update()
 
         ImGui::TreePop();
 	}
-
+    */
 }

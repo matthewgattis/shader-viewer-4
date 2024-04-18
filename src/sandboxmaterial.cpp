@@ -20,14 +20,14 @@ SandboxMaterial::SandboxMaterial(const std::string& fragment_shader_filename) :
 
     {
         std::stringstream ss(
-            "#version 140\nin vec2 in_Position; out vec2 FragCoord; void main() { FragCoord = in_Position; gl_Position = vec4(in_Position, 0., 1.); }");
+            "#version 150\nin vec2 in_Position; out vec2 FragCoord; void main() { FragCoord = in_Position; gl_Position = vec4(in_Position, 0., 1.); }");
         vertex_ = std::make_shared<Shader>(
             ss,
             GL_VERTEX_SHADER);
     }
 
     {
-        std::stringstream ss("#version 140\nvoid main() { gl_FragColor = vec4(0.); }");
+        std::stringstream ss("#version 150\nout vec4 FragColor;\nvoid main() { FragColor = vec4(0.); }");
         blank_fragment_shader_ = std::make_shared<Shader>(
             ss,
             GL_FRAGMENT_SHADER);

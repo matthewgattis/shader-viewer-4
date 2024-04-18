@@ -1,22 +1,17 @@
 #pragma once
 
-#include <memory>
-#include <optional>
-
-#include <GL/glew.h>
 #include <glm/glm.hpp>
+#include <GL/glew.h>
 
 class Program;
 
 class Material
 {
-public:
+protected:
     Material() = default;
 
-    virtual void useMaterial() = 0;
-
-    virtual GLint getPositionAttrib() = 0;
-
-    virtual void setViewMatrixUniform(const glm::mat4& view_matrix) = 0;
+public:
+    virtual void use() = 0;
+    virtual void setModelViewProjection(const glm::mat4& model_view_projection) = 0;
 };
 

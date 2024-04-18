@@ -5,13 +5,14 @@
 #include "geometry.hpp"
 
 class Program;
+struct AttributeLocations;
 
 class PlaneGeometry : public Geometry
 {
 public:
     PlaneGeometry();
 
-    void render(GLint position_attrib_location) override;
+    void draw(const AttributeLocations& attribute_locations) override;
 
 private:
     GLuint vbo_;

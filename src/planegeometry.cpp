@@ -1,5 +1,7 @@
 #include "planegeometry.hpp"
 
+#include "attributelocations.hpp"
+
 #define LOG_MODULE_NAME ("PlaneGeometry")
 #include "log.hpp"
 
@@ -33,13 +35,17 @@ PlaneGeometry::PlaneGeometry()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof (GLuint), indices, GL_STATIC_DRAW);
 }
 
-void PlaneGeometry::render(GLint position_attrib_location)
+void PlaneGeometry::draw(const AttributeLocations& attribute_locations)
 {
     glBindVertexArray(vao_);
 
-    glEnableVertexAttribArray(position_attrib_location);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-    glVertexAttribPointer(position_attrib_location, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    if (attribute_locations.position_attrib_location.has_value())
+    {
+        GLint position_attrib_location = attribute_locations.position_attrib_location.value();
+        glEnableVertexAttribArray(position_attrib_location);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+        glVertexAttribPointer(position_attrib_location, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    }
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);

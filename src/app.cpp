@@ -2,6 +2,8 @@
 
 #include <SDL2/SDL.h>
 #include <argparse/argparse.hpp>
+#include <GL/glew.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
@@ -9,16 +11,20 @@
 
 #include "window.hpp"
 #include "context.hpp"
-#include "sandboxmaterial.hpp"
-#include "sandbox.hpp"
-#include "camera.hpp"
+#include "appcamera.hpp"
 #include "uicontext.hpp"
 #include "mainwindow.hpp"
-
-#include "cameraui.hpp"
+#include "transform.hpp"
+#include "axismaterial.hpp"
+#include "axisgeometry.hpp"
+#include "axis.hpp"
+#include "renderer.hpp"
+#include "renderable.hpp"
 
 #define LOG_MODULE_NAME ("App")
 #include "log.hpp"
+
+const std::string App::APPLICATION_NAME = "voxel-experiement";
 
 App::App(const std::vector<std::string> &args) :
     done_(false),
@@ -26,11 +32,7 @@ App::App(const std::vector<std::string> &args) :
 {
     LOG_INFO << "instance created. " << this << std::endl;
 
-    argparse::ArgumentParser program("shader-viewer-4", "shader-viewer-4 v4.0.0");
-
-    program.add_argument("shader_source")
-        .help("shader file to load")
-        .required();
+    argparse::ArgumentParser program(APPLICATION_NAME, APPLICATION_NAME + " v0.1.0");
 
 	program.parse_args(args);
 
@@ -41,34 +43,42 @@ App::App(const std::vector<std::string> &args) :
             LOG_ERROR << "failure in SDL_Init. SDL_GetError: " << SDL_GetError() << std::endl;
     }
 
-    window_ = std::make_shared<Window>("shader-viewer-4");
+    window_ = std::make_shared<Window>(APPLICATION_NAME);
 
     {
         const auto x = window_->getDefaultResolution();
-        default_resolution_ = glm::vec3(x.first, x.second, (double)x.first / (double)x.second);
+        default_resolution_ = glm::vec2(x.first, x.second);
         resolution_ = default_resolution_;
     }
 
     context_ = std::make_shared<Context>(window_);
     ui_context_ = std::make_shared<UiContext>(window_, context_);
 
-    LOG_INFO << "loading shader source: " << program.get<std::string>("shader_source") << std::endl;
-
-    sandbox_material_ = std::make_shared<SandboxMaterial>(program.get<std::string>("shader_source"));
-    sandbox_material_->setResolutionUniform(default_resolution_);
-
-    sandbox_ = std::make_shared<Sandbox>(sandbox_material_);
-    camera_ = std::make_shared<Camera>(1.0, 0.001, 1000.0);
-
     main_window_ = std::make_shared<MainWindow>(
         ui_context_,
-        "shader-viewer-4",
+        APPLICATION_NAME,
         std::vector<std::pair<std::string, std::shared_ptr<Ui>>>
 		{
-            std::make_pair("Camera", std::make_shared<CameraUi>(camera_)),
 		});
 
-    Uint32 start_time_ = SDL_GetTicks();
+    root_ = std::make_shared<Transform>();
+    app_camera_ = std::make_shared<AppCamera>(root_, resolution_);
+
+    renderables_ = std::vector<std::shared_ptr<Renderable>>();
+    {
+        auto axis_material = std::make_shared<AxisMaterial>();
+        auto axis_geometry = std::make_shared<AxisGeometry>();
+        for (int i = 0; i < 16; i++)
+            for (int j = 0; j < 16; j++)
+            {
+                auto transform = std::make_shared<Transform>(root_, glm::translate(glm::mat4(1.0f), glm::vec3(i, j, 0.0f)));
+                renderables_.push_back(std::make_shared<Axis>(transform, axis_material, axis_geometry));
+            }
+    }
+
+    renderer_ = std::make_shared<Renderer>();
+
+    glEnable(GL_DEPTH_TEST);
 }
 
 void App::run()
@@ -87,23 +97,19 @@ void App::run()
             {
                 ImGui_ImplSDL2_ProcessEvent(&e);
 
-                camera_->handleEvents(
-                    e,
-                    (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) == false);
+                if ((ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) == false)
+                    app_camera_->handleEvents(e);
 
                 handleEvents(e);
             }
         }
 
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         {
-            camera_->update(frame_delay / 1000.0f);
+            app_camera_->update(frame_delay / 1000.0f);
 
-            sandbox_material_->setViewMatrixUniform(camera_->view_matrix_);
-            sandbox_material_->setTimeUniform((SDL_GetTicks() - start_time_) / 1000.0);
-
-            sandbox_->render();
+            renderer_->draw(root_, app_camera_, renderables_);
         }
 
         {
@@ -137,8 +143,11 @@ void App::handleEvents(const SDL_Event& e)
             {
                 LOG_INFO << "window resize: " << e.window.data1 << " " << e.window.data2 << std::endl;
                 resolution_ = glm::vec3(e.window.data1, e.window.data2, (double)e.window.data1 / (double)e.window.data2);
-                sandbox_material_->setResolutionUniform(resolution_);
-                glViewport(0, 0, e.window.data1, e.window.data2);
+                app_camera_->setResolution(glm::vec2(e.window.data1, e.window.data2));
+                int width;
+                int height;
+                SDL_GL_GetDrawableSize(window_->get(), &width, &height);
+                glViewport(0, 0, width, height);
             }
             break;
     }
@@ -151,30 +160,15 @@ void App::handleEvents(const SDL_Event& e)
         case SDL_KEYDOWN:
             switch (e.key.keysym.sym)
             {
-                case SDLK_r:
-                    LOG_INFO << "shader reload" << std::endl;
-                    sandbox_material_->reload();
-                    sandbox_material_->setResolutionUniform(resolution_);
-                    break;
-
-                case SDLK_q:
-                    LOG_INFO << "stop shader" << std::endl;
-                    sandbox_material_->blank();
-                    break;
-                
-                case SDLK_t:
-                    LOG_INFO << "reset time" << std::endl;
-                    start_time_ = SDL_GetTicks();
-                    break;
-
-                case SDLK_f:
+#ifndef __APPLE__
                 case SDLK_F11:
                     LOG_INFO << "fullscreen toggle" << std::endl;
                     fullscreen_ = !fullscreen_;
                     window_->setFullscreen(fullscreen_);
                     break;
+#endif
 
-                case SDLK_g:
+                case SDLK_F10:
                     LOG_INFO << "toggle GUI" << std::endl;
                     main_window_->toggleShow();
 					break;

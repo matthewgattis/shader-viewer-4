@@ -8,7 +8,7 @@ MainWindow::MainWindow(
 	const std::shared_ptr<UiContext>& ui_context,
 	const std::string name,
 	const std::vector<std::pair<std::string, std::shared_ptr<Ui>>>& uis) :
-	show_(true),
+	show_(false),
 	name_(name),
 	uis_(uis),
 	ui_context_(ui_context)

@@ -8,7 +8,6 @@ class Shader
 {
 public:
     Shader(std::istream& is, GLenum type);
-    Shader(const std::string& source, GLenum shader_type);
     Shader() = delete;
     ~Shader();
 

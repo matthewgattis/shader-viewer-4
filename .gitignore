@@ -1,4 +1,6 @@
 .cache/
 .vscode/
 build/
+.DS_Store
+build-2/
 

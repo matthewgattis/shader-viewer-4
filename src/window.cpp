@@ -61,7 +61,7 @@ Window::Window(const std::string &window_title) :
         SDL_WINDOWPOS_CENTERED,
         default_resolution_list_[selection].first,
         default_resolution_list_[selection].second,
-        SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+        SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
 
     if (!sdl_window_)
     {

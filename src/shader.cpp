@@ -1,6 +1,5 @@
 #include "shader.hpp"
 
-#include <cstring>
 #include <sstream>
 
 #define LOG_MODULE_NAME ("Shader")

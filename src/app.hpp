@@ -10,10 +10,12 @@
 class Window;
 class Context;
 class UiContext;
-class SandboxMaterial;
-class Sandbox;
-class Camera;
 class MainWindow;
+class AppCamera;
+class Transform;
+class Axis;
+class Renderer;
+class Renderable;
 
 class App
 {
@@ -29,20 +31,25 @@ public:
 private:
     bool done_;
     
-    std::shared_ptr<Context> context_;
     std::shared_ptr<Window> window_;
+    std::shared_ptr<Context> context_;
+
     std::shared_ptr<UiContext> ui_context_;
-
-    std::shared_ptr<SandboxMaterial> sandbox_material_;
-    std::shared_ptr<Sandbox> sandbox_;
-    std::shared_ptr<Camera> camera_;
-
     std::shared_ptr<MainWindow> main_window_;
     
-    glm::vec3 resolution_;
-    glm::vec3 default_resolution_;
-
-    Uint32 start_time_;
+    glm::vec2 resolution_;
+    glm::vec2 default_resolution_;
     bool fullscreen_;
+
+    std::shared_ptr<Transform> root_;
+    std::shared_ptr<AppCamera> app_camera_;
+    std::shared_ptr<Axis> axis_;
+    std::shared_ptr<Axis> axis_2_;
+
+    std::shared_ptr<Renderer> renderer_;
+    std::vector<std::shared_ptr<Renderable>> renderables_;
+
+public:
+    static const std::string APPLICATION_NAME;
 };
 
