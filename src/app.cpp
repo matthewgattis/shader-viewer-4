@@ -41,7 +41,9 @@ App::App(const std::vector<std::string> &args) :
             LOG_ERROR << "failure in SDL_Init. SDL_GetError: " << SDL_GetError() << std::endl;
     }
 
-    window_ = std::make_shared<Window>("shader-viewer-4");
+    std::string shader_source_name = program.get<std::string>("shader_source");
+    
+    window_ = std::make_shared<Window>("shader-viewer-4, " + shader_source_name);
 
     {
         const auto x = window_->getDefaultResolution();
@@ -52,7 +54,7 @@ App::App(const std::vector<std::string> &args) :
     context_ = std::make_shared<Context>(window_);
     ui_context_ = std::make_shared<UiContext>(window_, context_);
 
-    LOG_INFO << "loading shader source: " << program.get<std::string>("shader_source") << std::endl;
+    LOG_INFO << "loading shader source: " << shader_source_name << std::endl;
 
     sandbox_material_ = std::make_shared<SandboxMaterial>(program.get<std::string>("shader_source"));
     sandbox_material_->setResolutionUniform(default_resolution_);
@@ -138,7 +140,10 @@ void App::handleEvents(const SDL_Event& e)
                 LOG_INFO << "window resize: " << e.window.data1 << " " << e.window.data2 << std::endl;
                 resolution_ = glm::vec3(e.window.data1, e.window.data2, (double)e.window.data1 / (double)e.window.data2);
                 sandbox_material_->setResolutionUniform(resolution_);
-                glViewport(0, 0, e.window.data1, e.window.data2);
+                int width;
+                int height;
+                SDL_GL_GetDrawableSize(window_->get(), &width, &height);
+                glViewport(0, 0, width, height);
             }
             break;
     }

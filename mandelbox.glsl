@@ -7,9 +7,10 @@ uniform float Time;
 uniform mat4 ViewMatrix;
 
 in vec2 FragCoord;
+out vec4 FragColor;
 
-#define MIN_DELTA       (0.1 / Resolution.y)
-#define MAX_DELTA       (2.0 / Resolution.y)
+#define MIN_DELTA       (0.001 / Resolution.y)
+#define MAX_DELTA       (0.1 / Resolution.y)
 #define MAX_DISTANCE    (48.0)
 
 #define MAX_ITERATIONS  (64)
@@ -76,7 +77,7 @@ float DE(vec3 z)
 }
 
 // ------------------------------------------------------------------------------------------------
-#define DE3_ITER            (16)
+#define DE3_ITER            (32)
 #define DE3_SCALE           (2.0f)
 #define DE3_MIN_RADIUS      (0.5f)
 #define DE3_FIXED_RADIUS    (1.0f)
@@ -239,7 +240,7 @@ void main()
 
                 //vec3 origin = vec3(0.0, -mod(Time * 0.1, 2.0) + 1.0, 0.0);
 
-                vec3 origin = (24.0 * ViewMatrix * vec4(vec3(0.0), 1.0)).xyz;
+                vec3 origin = (16.0 * ViewMatrix * vec4(vec3(0.0), 1.0)).xyz;
                 vec3 direction = (ViewMatrix * vec4(normalize(vec3(p, -1.0)), 0.0)).xyz;
 
                 //direction = vRotateZ(direction, Time * 0.1);
@@ -268,6 +269,6 @@ void main()
                     vec3(1.0)) / c;
             }
 
-    gl_FragColor = vec4(aa_color, 1.0);
+    FragColor = vec4(aa_color, 1.0);
 }
 

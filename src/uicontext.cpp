@@ -27,7 +27,7 @@ UiContext::UiContext(
     ImGui::GetIO().FontGlobalScale = ddpi;
 
     ImGui_ImplSDL2_InitForOpenGL(window->get(), context->get());
-    ImGui_ImplOpenGL3_Init("#version 130");
+    ImGui_ImplOpenGL3_Init(context->getGlslVersion().c_str());
 }
 
 UiContext::~UiContext()

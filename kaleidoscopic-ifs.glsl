@@ -7,6 +7,7 @@ uniform float Time;
 uniform mat4 ViewMatrix;
 
 in vec2 FragCoord;
+out vec4 FragColor;
 
 #define MIN_DELTA       (0.01 / Resolution.y)
 #define MAX_DELTA       (2.0 / Resolution.y)
@@ -213,6 +214,6 @@ void main()
                     vec3(1.0)) / c;
             }
 
-    gl_FragColor = vec4(aa_color, 1.0);
+    FragColor = vec4(aa_color, 1.0);
 }
 
