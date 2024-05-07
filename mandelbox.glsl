@@ -9,11 +9,11 @@ uniform mat4 ViewMatrix;
 in vec2 FragCoord;
 out vec4 FragColor;
 
-#define MIN_DELTA       (0.001 / Resolution.y)
-#define MAX_DELTA       (0.1 / Resolution.y)
+#define MIN_DELTA       (0.005 / Resolution.y)
+#define MAX_DELTA       (0.5 / Resolution.y)
 #define MAX_DISTANCE    (48.0)
 
-#define MAX_ITERATIONS  (64)
+#define MAX_ITERATIONS  (128)
 
 struct surface
 {
