@@ -32,6 +32,11 @@ App::App(const std::vector<std::string> &args) :
         .help("shader file to load")
         .required();
 
+    program.add_argument("-l", "--low-dpi")
+        .help("switch to disable high dpi")
+        .default_value(false)
+        .implicit_value(true);
+
 	program.parse_args(args);
 
     {
@@ -42,8 +47,10 @@ App::App(const std::vector<std::string> &args) :
     }
 
     std::string shader_source_name = program.get<std::string>("shader_source");
+
+    high_dpi_ = !program.get<bool>("-l");
     
-    window_ = std::make_shared<Window>("shader-viewer-4, " + shader_source_name);
+    window_ = std::make_shared<Window>("shader-viewer-4, " + shader_source_name, high_dpi_);
 
     {
         const auto x = window_->getDefaultResolution();
@@ -137,12 +144,17 @@ void App::handleEvents(const SDL_Event& e)
         case SDL_WINDOWEVENT:
             if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
             {
-                LOG_INFO << "window resize: " << e.window.data1 << " " << e.window.data2 << std::endl;
-                resolution_ = glm::vec3(e.window.data1, e.window.data2, (double)e.window.data1 / (double)e.window.data2);
+                int width = e.window.data1;
+                int height = e.window.data2;
+
+                LOG_INFO << "window resize: " << width << " " << height << std::endl;
+
+                resolution_ = glm::vec3(width, height, (double)width/ (double)height);
                 sandbox_material_->setResolutionUniform(resolution_);
-                int width;
-                int height;
-                SDL_GL_GetDrawableSize(window_->get(), &width, &height);
+
+                if (high_dpi_)
+                    SDL_GL_GetDrawableSize(window_->get(), &width, &height);
+
                 glViewport(0, 0, width, height);
             }
             break;

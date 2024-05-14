@@ -9,7 +9,7 @@
 class Window
 {
 public:
-    Window(const std::string &window_title);
+    Window(const std::string &window_title, bool high_dpi = true);
     ~Window();
 
     SDL_Window *get() const { return sdl_window_; }

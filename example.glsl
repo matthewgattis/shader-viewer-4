@@ -7,6 +7,7 @@ uniform float Time;
 uniform mat4 ViewMatrix;
 
 in vec2 FragCoord;
+out vec4 FragColor;
 
 #define MIN_DELTA       (1.0 / Resolution.y)
 #define MAX_DELTA       (10.0 / Resolution.y)
@@ -78,8 +79,8 @@ float getMap(in vec3 p, out surface o)
         1,
         0.0f);
 
-    //return repeated(p, 8.0);
-    return doubleBox(p);
+    return repeated(p, 8.0);
+    //return doubleBox(p);
 }
 
 // ----------------------------------------------------------------------------
@@ -151,7 +152,8 @@ void main()
     for (int i = 0; i < aa; i++)
         for (int j = 0; j < aa; j++)
             {
-                vec2 p = vec2(Resolution.z, 1.0) * FragCoord + vec2(i, j) / Resolution.xy / b;
+                vec2 p = 2.0 * (FragCoord + vec2(i, j) / aa) / Resolution.y;
+                p -= vec2(Resolution.z, 1.0);
 
                 //vec3 origin = vec3(0.0, -mod(Time * 0.1, 2.0) + 1.0, 0.0);
 
@@ -183,6 +185,6 @@ void main()
                     vec3(1.0)) / c;
             }
 
-    gl_FragColor = vec4(aa_color, 1.0);
+    FragColor = vec4(aa_color, 1.0);
 }
 

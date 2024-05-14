@@ -44,5 +44,7 @@ private:
 
     Uint32 start_time_;
     bool fullscreen_;
+
+    bool high_dpi_;
 };
 

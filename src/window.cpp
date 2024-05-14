@@ -14,7 +14,7 @@ const std::vector<std::pair<int, int>> Window::default_resolution_list_ =
     std::pair<int, int>(2048, 1536)
 };
 
-Window::Window(const std::string &window_title) :
+Window::Window(const std::string &window_title, bool high_dpi) :
     sdl_window_(nullptr),
     window_title_(window_title)
 {
@@ -55,13 +55,17 @@ Window::Window(const std::string &window_title) :
     LOG_INFO << "Window width (" << default_resolution_list_[selection].first << ")" << std::endl;
     LOG_INFO << "Window height (" << default_resolution_list_[selection].second << ")" << std::endl;
 
+    int window_flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL;
+    if (high_dpi)
+        window_flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+
     sdl_window_ = SDL_CreateWindow(
         window_title.c_str(),
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
         default_resolution_list_[selection].first,
         default_resolution_list_[selection].second,
-        SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
+        window_flags);
 
     if (!sdl_window_)
     {
