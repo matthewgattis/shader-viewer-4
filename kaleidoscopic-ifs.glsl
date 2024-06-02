@@ -180,10 +180,7 @@ void main()
     for (int i = 0; i < aa; i++)
         for (int j = 0; j < aa; j++)
             {
-                vec2 p = 2.0 * (FragCoord + vec2(i, j) / aa) / Resolution.y;
-                p -= vec2(Resolution.z, 1.0);
-
-                //vec3 origin = vec3(0.0, -mod(Time * 0.1, 2.0) + 1.0, 0.0);
+                vec2 p = FragCoord + vec2(i, j) / aa / Resolution.y;
 
                 vec3 origin = (2.5 * ViewMatrix * vec4(vec3(0.0), 1.0)).xyz;
                 vec3 direction = (ViewMatrix * vec4(normalize(vec3(p, -1.0)), 0.0)).xyz;

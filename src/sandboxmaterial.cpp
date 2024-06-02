@@ -20,7 +20,7 @@ SandboxMaterial::SandboxMaterial(const std::string& fragment_shader_filename) :
 
     {
         std::stringstream ss(
-            "#version 150\nuniform vec3 Resolution; in vec2 in_Position; out vec2 FragCoord; void main() { FragCoord = (in_Position/2.+.5)*Resolution.xy; gl_Position = vec4(in_Position, 0., 1.); }");
+            "#version 150\nin vec2 in_Position; uniform vec3 Resolution; out vec2 FragCoord; void main() { FragCoord = in_Position * vec2(Resolution.z, 1.0f); gl_Position = vec4(in_Position, 0., 1.); }");
         vertex_ = std::make_shared<Shader>(
             ss,
             GL_VERTEX_SHADER);
