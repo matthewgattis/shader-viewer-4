@@ -1,37 +1,21 @@
 cmake_minimum_required(VERSION 3.22.1)
 
-
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR};${CMAKE_MODULE_PATH};")
-set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
-
-include(vcpkg_setup_toolchain.cmake)
-vcpkg_setup_toolchain()
-
 project(shader-viewer-4 VERSION 4.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
-#set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-
-#vcpkg_add_dependencies(
-    #"argparse"
-    #"glew"
-    #"glm"
-    #"opengl"
-    #"sdl2"
-    #"jsoncpp"
-    #)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_definitions(-D_USE_MATH_DEFINES)
 
-find_package(SDL2 CONFIG REQUIRED)
+find_package(SDL3 CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(GLM CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(argparse CONFIG REQUIRED)
-#find_package(jsoncpp CONFIG REQUIRED)
 
-set(${PROJECT_NAME}_source
+set(${PROJECT_NAME}_sources
     "src/app.cpp"
     "src/context.cpp"
     "src/main.cpp"
@@ -45,9 +29,9 @@ set(${PROJECT_NAME}_source
     "src/uicontext.cpp"
     "src/mainwindow.cpp"
     "src/cameraui.cpp"
-    )
+)
 
-set(${PROJECT_NAME}_include
+set(${PROJECT_NAME}_headers
     "src/log.hpp"
     "src/app.hpp"
     "src/context.hpp"
@@ -57,6 +41,7 @@ set(${PROJECT_NAME}_include
     "src/material.hpp"
     "src/sandboxmaterial.hpp"
     "src/planegeometry.hpp"
+    "src/geometry.hpp"
     "src/window.hpp"
     "src/renderable.hpp"
     "src/camera.hpp"
@@ -64,23 +49,18 @@ set(${PROJECT_NAME}_include
     "src/ui.hpp"
     "src/mainwindow.hpp"
     "src/cameraui.hpp"
-    )
+)
 
 add_executable(${PROJECT_NAME}
-    ${${PROJECT_NAME}_include}
-    ${${PROJECT_NAME}_source}
-    )
-
-#target_include_directories(${PROJECT_NAME}
-#)
+    ${${PROJECT_NAME}_sources}
+    ${${PROJECT_NAME}_headers}
+)
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE argparse::argparse
-    PRIVATE $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main> $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
+    PRIVATE SDL3::SDL3
     PRIVATE OpenGL::GL
     PRIVATE glm::glm
     PRIVATE GLEW::GLEW
     PRIVATE imgui::imgui
-    #PRIVATE JsonCpp::JsonCpp
-    )
-
+)

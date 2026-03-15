@@ -20,29 +20,17 @@ Window::Window(const std::string &window_title, bool high_dpi) :
 {
     LOG_INFO << "instance created. " << this << std::endl;
 
-    SDL_DisplayMode display_mode;
-    SDL_GetDesktopDisplayMode(0, &display_mode);
+    SDL_DisplayID display_id = SDL_GetPrimaryDisplay();
+    const SDL_DisplayMode *display_mode = SDL_GetDesktopDisplayMode(display_id);
 
-    float ddpi;
-    float hdpi;
-    float vdpi;
-    int sdl_result = SDL_GetDisplayDPI(0, &ddpi, &hdpi, &vdpi);
-    if (sdl_result)
-    {
-        LOG_WARNING << "Failure in SDL_GetDisplayDPI. (" << SDL_GetError() << ")" << std::endl;
-    }
-    else
-    {
-        LOG_INFO << "Display DPI ddpi (" << ddpi << ")" << std::endl;
-        LOG_INFO << "Display DPI hdpi (" << hdpi << ")" << std::endl;
-        LOG_INFO << "Display DPI vdpi (" << vdpi << ")" << std::endl;
-    }
+    float content_scale = SDL_GetDisplayContentScale(display_id);
+    LOG_INFO << "Display content scale (" << content_scale << ")" << std::endl;
 
     int selection = 0;
-    for (int i = 0; i < default_resolution_list_.size(); i++)
+    for (int i = 0; i < (int)default_resolution_list_.size(); i++)
     {
-        if (default_resolution_list_[i].first < display_mode.w &&
-            default_resolution_list_[i].second < display_mode.h)
+        if (default_resolution_list_[i].first < display_mode->w &&
+            default_resolution_list_[i].second < display_mode->h)
         {
             selection = i;
             continue;
@@ -55,14 +43,12 @@ Window::Window(const std::string &window_title, bool high_dpi) :
     LOG_INFO << "Window width (" << default_resolution_list_[selection].first << ")" << std::endl;
     LOG_INFO << "Window height (" << default_resolution_list_[selection].second << ")" << std::endl;
 
-    int window_flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL;
+    SDL_WindowFlags window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL;
     if (high_dpi)
-        window_flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+        window_flags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
     sdl_window_ = SDL_CreateWindow(
         window_title.c_str(),
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
         default_resolution_list_[selection].first,
         default_resolution_list_[selection].second,
         window_flags);
@@ -97,18 +83,10 @@ void Window::setWindowSize(int width, int height)
 
 void Window::setFullscreen(bool fullscreen)
 {
-	if (fullscreen == true)
-		SDL_SetWindowFullscreen(sdl_window_, SDL_WINDOW_FULLSCREEN_DESKTOP);
-	else
-		SDL_SetWindowFullscreen(sdl_window_, 0);
+    SDL_SetWindowFullscreen(sdl_window_, fullscreen);
 }
 
 float Window::getDpi() const
 {
-    float ddpi;
-    float hdpi;
-    float vdpi;
-    int sdl_result = SDL_GetDisplayDPI(0, &ddpi, &hdpi, &vdpi);
-    return ddpi;
+    return SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
 }
-

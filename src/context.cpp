@@ -91,7 +91,7 @@ Context::Context(const std::shared_ptr<Window>& window) :
 
 Context::~Context()
 {
-    LOG_INFO << "SDL_GL_DeleteContext" << std::endl;
-    SDL_GL_DeleteContext(context_);
+    LOG_INFO << "SDL_GL_DestroyContext" << std::endl;
+    SDL_GL_DestroyContext(context_);
 }
 

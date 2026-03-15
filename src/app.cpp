@@ -1,10 +1,10 @@
 #include "app.hpp"
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <argparse/argparse.hpp>
 
 #include "imgui.h"
-#include "imgui_impl_sdl2.h"
+#include "imgui_impl_sdl3.h"
 #include "imgui_impl_opengl3.h"
 
 #include "window.hpp"
@@ -40,9 +40,7 @@ App::App(const std::vector<std::string> &args) :
 	program.parse_args(args);
 
     {
-        int result;
-        result = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-        if (result)
+        if (!SDL_Init(SDL_INIT_VIDEO))
             LOG_ERROR << "failure in SDL_Init. SDL_GetError: " << SDL_GetError() << std::endl;
     }
 
@@ -77,28 +75,28 @@ App::App(const std::vector<std::string> &args) :
             std::make_pair("Camera", std::make_shared<CameraUi>(camera_)),
 		});
 
-    Uint32 start_time_ = SDL_GetTicks();
+    start_time_ = SDL_GetTicks();
 }
 
 void App::run()
 {
-    int frame_delay = 0;
-    bool show_demo_window = true;
+    Uint64 frame_delay = 0;
     glClearColor(0.0, 0.0, 0.0, 0.0);
 
     while (!done_)
     {
-        int frame_start = SDL_GetTicks();
+        Uint64 frame_start = SDL_GetTicks();
 
         {
             SDL_Event e;
             while (SDL_PollEvent(&e))
             {
-                ImGui_ImplSDL2_ProcessEvent(&e);
+                ImGui_ImplSDL3_ProcessEvent(&e);
 
                 camera_->handleEvents(
                     e,
-                    (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) == false);
+                    (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) == false,
+                    window_->get());
 
                 handleEvents(e);
             }
@@ -117,7 +115,7 @@ void App::run()
 
         {
             ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplSDL2_NewFrame();
+            ImGui_ImplSDL3_NewFrame();
             ImGui::NewFrame();
 
             main_window_->update();
@@ -128,7 +126,7 @@ void App::run()
 
         SDL_GL_SwapWindow(window_->get());
 
-        int frame_end = SDL_GetTicks();
+        Uint64 frame_end = SDL_GetTicks();
         frame_delay = frame_end - frame_start;
     }
 }
@@ -137,23 +135,20 @@ void App::handleEvents(const SDL_Event& e)
 {
     switch (e.type)
     {
-        case SDL_QUIT:
+        case SDL_EVENT_QUIT:
             done_ = true;
             break;
 
-        case SDL_WINDOWEVENT:
-            if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+        case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
             {
                 int width = e.window.data1;
                 int height = e.window.data2;
 
                 LOG_INFO << "window resize: " << width << " " << height << std::endl;
 
-                resolution_ = glm::vec3(width, height, (double)width/ (double)height);
+                // Use pixel size directly (already accounts for high-DPI)
+                resolution_ = glm::vec3(width, height, (double)width / (double)height);
                 sandbox_material_->setResolutionUniform(resolution_);
-
-                if (high_dpi_)
-                    SDL_GL_GetDrawableSize(window_->get(), &width, &height);
 
                 glViewport(0, 0, width, height);
             }
@@ -165,33 +160,33 @@ void App::handleEvents(const SDL_Event& e)
 
     switch (e.type)
     {
-        case SDL_KEYDOWN:
-            switch (e.key.keysym.sym)
+        case SDL_EVENT_KEY_DOWN:
+            switch (e.key.key)
             {
-                case SDLK_r:
+                case SDLK_R:
                     LOG_INFO << "shader reload" << std::endl;
                     sandbox_material_->reload();
                     sandbox_material_->setResolutionUniform(resolution_);
                     break;
 
-                case SDLK_q:
+                case SDLK_Q:
                     LOG_INFO << "stop shader" << std::endl;
                     sandbox_material_->blank();
                     break;
                 
-                case SDLK_t:
+                case SDLK_T:
                     LOG_INFO << "reset time" << std::endl;
                     start_time_ = SDL_GetTicks();
                     break;
 
-                case SDLK_f:
+                case SDLK_F:
                 case SDLK_F11:
                     LOG_INFO << "fullscreen toggle" << std::endl;
                     fullscreen_ = !fullscreen_;
                     window_->setFullscreen(fullscreen_);
                     break;
 
-                case SDLK_g:
+                case SDLK_G:
                     LOG_INFO << "toggle GUI" << std::endl;
                     main_window_->toggleShow();
 					break;
@@ -210,8 +205,8 @@ void App::handleEvents(const SDL_Event& e)
                 case SDLK_6:
                 case SDLK_7:
                     window_->setWindowSize(
-                        window_->default_resolution_list_[e.key.keysym.sym - SDLK_1].first,
-                        window_->default_resolution_list_[e.key.keysym.sym - SDLK_1].second);
+                        window_->default_resolution_list_[e.key.key - SDLK_1].first,
+                        window_->default_resolution_list_[e.key.key - SDLK_1].second);
                     break;
             }
             break;
@@ -225,4 +220,3 @@ App::~App()
 {
     SDL_Quit();
 }
-

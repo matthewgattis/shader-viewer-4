@@ -19,8 +19,8 @@ An interactive OpenGL fragment shader viewer with a physics-based camera. Load a
 
 ### Prerequisites
 
-- [CMake](https://cmake.org/) >= 3.22
-- [vcpkg](https://github.com/microsoft/vcpkg) — follow Microsoft's [getting started guide](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started) to bootstrap vcpkg, then set the `VCPKG_ROOT` environment variable (or pass `-D VCPKG_ROOT=/path/to/vcpkg` on the CMake command line)
+- [CMake](https://cmake.org/) >= 3.22 (with [Ninja](https://ninja-build.org/))
+- [vcpkg](https://github.com/microsoft/vcpkg) — follow Microsoft's [getting started guide](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started) to bootstrap vcpkg, then set the `VCPKG_ROOT` environment variable
 
 All other dependencies (SDL2, GLEW, GLM, Dear ImGui, argparse) are fetched and built automatically by vcpkg.
 
@@ -28,28 +28,31 @@ All other dependencies (SDL2, GLEW, GLM, Dear ImGui, argparse) are fetched and b
 
 ```bash
 git clone https://github.com/matthewgattis/shader-viewer-4.git
-mkdir -p shader-viewer-4/build
-cd shader-viewer-4/build
-cmake -D CMAKE_BUILD_TYPE=Release ../
-cmake --build .
+cd shader-viewer-4
+cmake --preset default
+cmake --build --preset default
 ```
+
+The `default` preset reads `VCPKG_ROOT` from your environment, places the build in `build/`, and builds in Release mode. A `debug` preset is also available.
+
+If you need to override `VCPKG_ROOT` without modifying your environment, create a `CMakeUserPresets.json` (already gitignored) that inherits from `default` and sets `VCPKG_ROOT` as a cache variable. A template is included in the repo.
 
 ### Running
 
 ```bash
-./shader-viewer-4 <path/to/shader.glsl>
+./build/shader-viewer-4 <path/to/shader.glsl>
 ```
 
-To load the included example shader from the build directory:
+To load the included example shader:
 
 ```bash
-./shader-viewer-4 ../example.glsl
+./build/shader-viewer-4 example.glsl
 ```
 
 Pass `--low-dpi` to disable high-DPI scaling:
 
 ```bash
-./shader-viewer-4 --low-dpi ../example.glsl
+./build/shader-viewer-4 --low-dpi example.glsl
 ```
 
 ### Included Shaders

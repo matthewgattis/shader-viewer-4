@@ -4,17 +4,17 @@
 #include "context.hpp"
 
 #include "imgui.h"
-#include "imgui_impl_sdl2.h"
+#include "imgui_impl_sdl3.h"
 #include "imgui_impl_opengl3.h"
 
 UiContext::UiContext(
     const std::shared_ptr<Window>& window,
     const std::shared_ptr<Context>& context)
 {
-    float ddpi = window->getDpi();
-    ddpi = (int)(ddpi / 144.0f);
-    if (ddpi < 1.0f)
-        ddpi = 1.0f;
+    float scale = window->getDpi();
+    scale = (int)(scale / 144.0f);
+    if (scale < 1.0f)
+        scale = 1.0f;
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -23,17 +23,16 @@ UiContext::UiContext(
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     ImGui::StyleColorsDark();
-    ImGui::GetStyle().ScaleAllSizes(ddpi);
-    ImGui::GetIO().FontGlobalScale = ddpi;
+    ImGui::GetStyle().ScaleAllSizes(scale);
+    ImGui::GetIO().FontGlobalScale = scale;
 
-    ImGui_ImplSDL2_InitForOpenGL(window->get(), context->get());
+    ImGui_ImplSDL3_InitForOpenGL(window->get(), context->get());
     ImGui_ImplOpenGL3_Init(context->getGlslVersion().c_str());
 }
 
 UiContext::~UiContext()
 {
     ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
+    ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();
 }
-

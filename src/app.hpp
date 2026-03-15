@@ -5,7 +5,7 @@
 #include <memory>
 
 #include <glm/glm.hpp>
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 
 class Window;
 class Context;
@@ -42,7 +42,7 @@ private:
     glm::vec3 resolution_;
     glm::vec3 default_resolution_;
 
-    Uint32 start_time_;
+    Uint64 start_time_;
     bool fullscreen_;
 
     bool high_dpi_;

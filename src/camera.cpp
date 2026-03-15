@@ -95,7 +95,7 @@ void Camera::setDistance(float distance)
     distance_ = glm::max(0.0f, distance);
 }
 
-void Camera::handleEvents(const SDL_Event& e, bool enabled)
+void Camera::handleEvents(const SDL_Event& e, bool enabled, SDL_Window* window)
 {
     if (enabled == false)
     {
@@ -105,7 +105,7 @@ void Camera::handleEvents(const SDL_Event& e, bool enabled)
 
     switch (e.type)
     {
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             {
                 if ((e.motion.state & SDL_BUTTON_LMASK) &&
                     (e.motion.state & SDL_BUTTON_RMASK))
@@ -126,46 +126,46 @@ void Camera::handleEvents(const SDL_Event& e, bool enabled)
             }
             break;
 
-        case SDL_MOUSEWHEEL:
-            zoom(e.wheel.preciseY);
+        case SDL_EVENT_MOUSE_WHEEL:
+            zoom(e.wheel.y);
             break;
 
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             if (e.button.button == SDL_BUTTON_LEFT ||
                 e.button.button == SDL_BUTTON_RIGHT ||
                 e.button.button == SDL_BUTTON_MIDDLE)
             {
-                SDL_ShowCursor(SDL_DISABLE);
-                SDL_SetRelativeMouseMode(SDL_TRUE);
+                SDL_HideCursor();
+                SDL_SetWindowRelativeMouseMode(window, true);
             }
             break;
 
-        case SDL_MOUSEBUTTONUP:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
             if (e.button.button == SDL_BUTTON_LEFT ||
                 e.button.button == SDL_BUTTON_RIGHT ||
                 e.button.button == SDL_BUTTON_MIDDLE)
             {
-                SDL_ShowCursor(SDL_ENABLE);
-                SDL_SetRelativeMouseMode(SDL_FALSE);
+                SDL_ShowCursor();
+                SDL_SetWindowRelativeMouseMode(window, false);
             }
             break;
 
-        case SDL_KEYUP:
-            switch (e.key.keysym.sym)
+        case SDL_EVENT_KEY_UP:
+            switch (e.key.key)
             {
-                case SDLK_w:
+                case SDLK_W:
                     acceleration_.z = 0.0;
                     break;
 
-                case SDLK_a:
+                case SDLK_A:
                     acceleration_.x = 0.0;
                     break;
 
-                case SDLK_s:
+                case SDLK_S:
                     acceleration_.z = 0.0;
                     break;
 
-                case SDLK_d:
+                case SDLK_D:
                     acceleration_.x = 0.0;
                     break;
 
@@ -179,22 +179,22 @@ void Camera::handleEvents(const SDL_Event& e, bool enabled)
             }
             break;
 
-        case SDL_KEYDOWN:
-            switch (e.key.keysym.sym)
+        case SDL_EVENT_KEY_DOWN:
+            switch (e.key.key)
             {
-                case SDLK_w:
+                case SDLK_W:
                     acceleration_.z = -1.0;
                     break;
 
-                case SDLK_a:
+                case SDLK_A:
                     acceleration_.x = -1.0;
                     break;
 
-                case SDLK_s:
+                case SDLK_S:
                     acceleration_.z = 1.0;
                     break;
 
-                case SDLK_d:
+                case SDLK_D:
                     acceleration_.x = 1.0;
                     break;
 
@@ -206,7 +206,7 @@ void Camera::handleEvents(const SDL_Event& e, bool enabled)
                     acceleration_.y = -1.0;
                     break;
 
-                case SDLK_c:
+                case SDLK_C:
                     {
                         LOG_INFO << "camera reset" << std::endl;
                         
@@ -222,4 +222,3 @@ void Camera::handleEvents(const SDL_Event& e, bool enabled)
             break;
     }
 }
-

@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 
 class Camera
 {
@@ -16,7 +16,7 @@ public:
 	void zoom(float z);
 
 	void update(float frame_delay);
-    void handleEvents(const SDL_Event& e, bool enabled);
+    void handleEvents(const SDL_Event& e, bool enabled, SDL_Window* window);
 
     float getDistance() const { return distance_; }
     void setDistance(float distance);

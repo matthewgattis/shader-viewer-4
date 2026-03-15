@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 
 class Window;
 
