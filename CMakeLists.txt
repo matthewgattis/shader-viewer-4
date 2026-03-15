@@ -14,6 +14,7 @@ find_package(glm CONFIG REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(argparse CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 
 set(${PROJECT_NAME}_sources
     "src/app.cpp"
@@ -63,4 +64,5 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE glm::glm
     PRIVATE GLEW::GLEW
     PRIVATE imgui::imgui
+    PRIVATE spdlog::spdlog
 )

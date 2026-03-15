@@ -2,6 +2,7 @@
   "name": "shader-viewer-4",
   "dependencies": [
     "argparse",
+    "spdlog",
     "glew",
     "glm",
     {

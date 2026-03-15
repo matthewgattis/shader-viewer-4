@@ -1,12 +1,10 @@
 #include "planegeometry.hpp"
 
-#define LOG_MODULE_NAME ("PlaneGeometry")
+#define LOG_MODULE_NAME "PlaneGeometry"
 #include "log.hpp"
 
 PlaneGeometry::PlaneGeometry()
 {
-    LOG_INFO << "instance created. " << this << std::endl;
-
     GLfloat vertices[]
     {
         -1.0f, -1.0f,
@@ -26,11 +24,11 @@ PlaneGeometry::PlaneGeometry()
 
     glGenBuffers(1, &vbo_);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
-    glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof (GLfloat), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
 
     glGenBuffers(1, &ibo_);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof (GLuint), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLuint), indices, GL_STATIC_DRAW);
 }
 
 void PlaneGeometry::render(GLint position_attrib_location)
@@ -44,4 +42,3 @@ void PlaneGeometry::render(GLint position_attrib_location)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 }
-

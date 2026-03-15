@@ -14,18 +14,15 @@
 #include "camera.hpp"
 #include "uicontext.hpp"
 #include "mainwindow.hpp"
-
 #include "cameraui.hpp"
 
-#define LOG_MODULE_NAME ("App")
+#define LOG_MODULE_NAME "App"
 #include "log.hpp"
 
 App::App(const std::vector<std::string> &args) :
     done_(false),
     fullscreen_(false)
 {
-    LOG_INFO << "instance created. " << this << std::endl;
-
     argparse::ArgumentParser program("shader-viewer-4", "shader-viewer-4 v4.0.0");
 
     program.add_argument("shader_source")
@@ -33,35 +30,32 @@ App::App(const std::vector<std::string> &args) :
         .required();
 
     program.add_argument("-l", "--low-dpi")
-        .help("switch to disable high dpi")
+        .help("disable high-DPI scaling")
         .default_value(false)
         .implicit_value(true);
 
-	program.parse_args(args);
+    program.parse_args(args);
 
-    {
-        if (!SDL_Init(SDL_INIT_VIDEO))
-            LOG_ERROR << "failure in SDL_Init. SDL_GetError: " << SDL_GetError() << std::endl;
-    }
+    if (!SDL_Init(SDL_INIT_VIDEO))
+        LOG_ERROR("SDL_Init failed: {}", SDL_GetError());
 
     std::string shader_source_name = program.get<std::string>("shader_source");
-
     high_dpi_ = !program.get<bool>("-l");
-    
-    window_ = std::make_shared<Window>("shader-viewer-4, " + shader_source_name, high_dpi_);
+
+    LOG_INFO("loading shader: {}", shader_source_name);
+
+    window_ = std::make_shared<Window>("shader-viewer-4 — " + shader_source_name, high_dpi_);
 
     {
-        const auto x = window_->getDefaultResolution();
-        default_resolution_ = glm::vec3(x.first, x.second, (double)x.first / (double)x.second);
+        const auto& res = window_->getDefaultResolution();
+        default_resolution_ = glm::vec3(res.first, res.second, (double)res.first / (double)res.second);
         resolution_ = default_resolution_;
     }
 
     context_ = std::make_shared<Context>(window_);
     ui_context_ = std::make_shared<UiContext>(window_, context_);
 
-    LOG_INFO << "loading shader source: " << shader_source_name << std::endl;
-
-    sandbox_material_ = std::make_shared<SandboxMaterial>(program.get<std::string>("shader_source"));
+    sandbox_material_ = std::make_shared<SandboxMaterial>(shader_source_name);
     sandbox_material_->setResolutionUniform(default_resolution_);
 
     sandbox_ = std::make_shared<Sandbox>(sandbox_material_);
@@ -71,9 +65,9 @@ App::App(const std::vector<std::string> &args) :
         ui_context_,
         "shader-viewer-4",
         std::vector<std::pair<std::string, std::shared_ptr<Ui>>>
-		{
+        {
             std::make_pair("Camera", std::make_shared<CameraUi>(camera_)),
-		});
+        });
 
     start_time_ = SDL_GetTicks();
 }
@@ -104,25 +98,17 @@ void App::run()
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        {
-            camera_->update(frame_delay / 1000.0f);
+        camera_->update(frame_delay / 1000.0f);
+        sandbox_material_->setViewMatrixUniform(camera_->view_matrix_);
+        sandbox_material_->setTimeUniform((SDL_GetTicks() - start_time_) / 1000.0f);
+        sandbox_->render();
 
-            sandbox_material_->setViewMatrixUniform(camera_->view_matrix_);
-            sandbox_material_->setTimeUniform((SDL_GetTicks() - start_time_) / 1000.0);
-
-            sandbox_->render();
-        }
-
-        {
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplSDL3_NewFrame();
-            ImGui::NewFrame();
-
-            main_window_->update();
-
-            ImGui::Render();
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        }
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplSDL3_NewFrame();
+        ImGui::NewFrame();
+        main_window_->update();
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         SDL_GL_SwapWindow(window_->get());
 
@@ -140,23 +126,19 @@ void App::handleEvents(const SDL_Event& e)
             break;
 
         case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
-            {
-                int width = e.window.data1;
-                int height = e.window.data2;
-
-                LOG_INFO << "window resize: " << width << " " << height << std::endl;
-
-                // Use pixel size directly (already accounts for high-DPI)
-                resolution_ = glm::vec3(width, height, (double)width / (double)height);
-                sandbox_material_->setResolutionUniform(resolution_);
-
-                glViewport(0, 0, width, height);
-            }
+        {
+            int width = e.window.data1;
+            int height = e.window.data2;
+            LOG_DEBUG("window pixel size changed: {}x{}", width, height);
+            resolution_ = glm::vec3(width, height, (double)width / (double)height);
+            sandbox_material_->setResolutionUniform(resolution_);
+            glViewport(0, 0, width, height);
             break;
+        }
     }
 
     if (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard)
-		return;
+        return;
 
     switch (e.type)
     {
@@ -164,37 +146,35 @@ void App::handleEvents(const SDL_Event& e)
             switch (e.key.key)
             {
                 case SDLK_R:
-                    LOG_INFO << "shader reload" << std::endl;
+                    LOG_INFO("reloading shader");
                     sandbox_material_->reload();
                     sandbox_material_->setResolutionUniform(resolution_);
                     break;
 
                 case SDLK_Q:
-                    LOG_INFO << "stop shader" << std::endl;
+                    LOG_INFO("unloading shader");
                     sandbox_material_->blank();
                     break;
-                
+
                 case SDLK_T:
-                    LOG_INFO << "reset time" << std::endl;
+                    LOG_INFO("resetting time");
                     start_time_ = SDL_GetTicks();
                     break;
 
                 case SDLK_F:
                 case SDLK_F11:
-                    LOG_INFO << "fullscreen toggle" << std::endl;
                     fullscreen_ = !fullscreen_;
+                    LOG_INFO("fullscreen: {}", fullscreen_);
                     window_->setFullscreen(fullscreen_);
                     break;
 
                 case SDLK_G:
-                    LOG_INFO << "toggle GUI" << std::endl;
+                    LOG_INFO("toggling GUI");
                     main_window_->toggleShow();
-					break;
+                    break;
 
                 case SDLK_0:
-                    window_->setWindowSize(
-                        default_resolution_.x,
-                        default_resolution_.y);
+                    window_->setWindowSize(default_resolution_.x, default_resolution_.y);
                     break;
 
                 case SDLK_1:
@@ -211,8 +191,8 @@ void App::handleEvents(const SDL_Event& e)
             }
             break;
 
-    default:
-        break;
+        default:
+            break;
     }
 }
 

@@ -1,35 +1,33 @@
 #include "window.hpp"
 
-#define LOG_MODULE_NAME ("Window")
+#define LOG_MODULE_NAME "Window"
 #include "log.hpp"
 
-const std::vector<std::pair<int, int>> Window::default_resolution_list_ = 
+const std::vector<std::pair<int, int>> Window::default_resolution_list_ =
 {
-    std::pair<int, int>(640, 480),
-    std::pair<int, int>(800, 600),
-    std::pair<int, int>(1024, 768),
-    std::pair<int, int>(1280, 960),
-    std::pair<int, int>(1440, 1080),
-    std::pair<int, int>(1600, 1200),
-    std::pair<int, int>(2048, 1536)
+    { 640,  480  },
+    { 800,  600  },
+    { 1024, 768  },
+    { 1280, 960  },
+    { 1440, 1080 },
+    { 1600, 1200 },
+    { 2048, 1536 },
 };
 
 Window::Window(const std::string &window_title, bool high_dpi) :
     sdl_window_(nullptr),
     window_title_(window_title)
 {
-    LOG_INFO << "instance created. " << this << std::endl;
-
     SDL_DisplayID display_id = SDL_GetPrimaryDisplay();
-    const SDL_DisplayMode *display_mode = SDL_GetDesktopDisplayMode(display_id);
+    const SDL_DisplayMode* display_mode = SDL_GetDesktopDisplayMode(display_id);
 
     float content_scale = SDL_GetDisplayContentScale(display_id);
-    LOG_INFO << "Display content scale (" << content_scale << ")" << std::endl;
+    LOG_DEBUG("display content scale: {:.2f}", content_scale);
 
     int selection = 0;
     for (int i = 0; i < (int)default_resolution_list_.size(); i++)
     {
-        if (default_resolution_list_[i].first < display_mode->w &&
+        if (default_resolution_list_[i].first  < display_mode->w &&
             default_resolution_list_[i].second < display_mode->h)
         {
             selection = i;
@@ -40,8 +38,8 @@ Window::Window(const std::string &window_title, bool high_dpi) :
 
     resolution_selection_ = selection;
 
-    LOG_INFO << "Window width (" << default_resolution_list_[selection].first << ")" << std::endl;
-    LOG_INFO << "Window height (" << default_resolution_list_[selection].second << ")" << std::endl;
+    const auto& res = default_resolution_list_[selection];
+    LOG_INFO("creating window: {}x{}", res.first, res.second);
 
     SDL_WindowFlags window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL;
     if (high_dpi)
@@ -49,13 +47,13 @@ Window::Window(const std::string &window_title, bool high_dpi) :
 
     sdl_window_ = SDL_CreateWindow(
         window_title.c_str(),
-        default_resolution_list_[selection].first,
-        default_resolution_list_[selection].second,
+        res.first,
+        res.second,
         window_flags);
 
     if (!sdl_window_)
     {
-        LOG_ERROR << "Failure in SDL_CreateWindow. (" << SDL_GetError() << ")" << std::endl;
+        LOG_CRITICAL("SDL_CreateWindow failed: {}", SDL_GetError());
         throw std::exception();
     }
 }
@@ -66,7 +64,7 @@ Window::~Window()
         SDL_DestroyWindow(sdl_window_);
 }
 
-const std::pair<int, int> &Window::getDefaultResolution() const
+const std::pair<int, int>& Window::getDefaultResolution() const
 {
     return default_resolution_list_[resolution_selection_];
 }
