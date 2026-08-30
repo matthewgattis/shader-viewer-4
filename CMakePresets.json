@@ -4,10 +4,10 @@
     {
       "name": "default",
       "displayName": "Default",
-      "description": "Default build using Ninja and vcpkg. Set VCPKG_ROOT in your environment or override it in CMakeUserPresets.json.",
+      "description": "Default build using Ninja and vcpkg.",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build",
-      "toolchainFile": "vcpkg/scripts/buildsystems/vcpkg.cmake",
+      "toolchainFile": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
