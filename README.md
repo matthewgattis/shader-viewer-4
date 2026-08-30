@@ -2,7 +2,7 @@
 
 An interactive OpenGL fragment shader viewer with a physics-based camera. Load any GLSL fragment shader and explore it in real time with orbit, pan, zoom, and free-look controls. Supports hot-reloading shaders from disk without restarting.
 
-![](docs/example.jpg)
+![](docs/example.png)
 
 ## Features
 
@@ -20,22 +20,19 @@ An interactive OpenGL fragment shader viewer with a physics-based camera. Load a
 ### Prerequisites
 
 - [CMake](https://cmake.org/) >= 3.22 (with [Ninja](https://ninja-build.org/))
-- [vcpkg](https://github.com/microsoft/vcpkg) — follow Microsoft's [getting started guide](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started) to bootstrap vcpkg, then set the `VCPKG_ROOT` environment variable
 
 All other dependencies (SDL2, GLEW, GLM, Dear ImGui, argparse) are fetched and built automatically by vcpkg.
 
 ### Building
 
 ```bash
-git clone https://github.com/matthewgattis/shader-viewer-4.git
+git clone --recurse-submodules https://github.com/matthewgattis/shader-viewer-4.git
 cd shader-viewer-4
 cmake --preset default
 cmake --build --preset default
 ```
 
-The `default` preset reads `VCPKG_ROOT` from your environment, places the build in `build/`, and builds in Release mode. A `debug` preset is also available.
-
-If you need to override `VCPKG_ROOT` without modifying your environment, create a `CMakeUserPresets.json` (already gitignored) that inherits from `default` and sets `VCPKG_ROOT` as a cache variable. A template is included in the repo.
+The `default` preset places the build in `build/`, and builds in Release mode. A `debug` preset is also available.
 
 ### Running
 
